@@ -163,7 +163,7 @@ export const HomeSP: FC = () => {
                         style={styles.addIcon}
                       />
                     </Pressable>
-
+      
       {/* Middle Section */}
       <View style={styles.middleSection}>
         <Pressable style={styles.evaluateButton} onPress={whenGotoChooseChild}>
@@ -190,7 +190,9 @@ export const HomeSP: FC = () => {
           />
         </View>
       </View>
+      
     </View>
+
   );
 };
 
@@ -198,8 +200,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F0F8FF",
-   
     paddingTop: 50,
+
     //marginTop: 45, //กรอบสีขาว
   },
   topSection: {
@@ -207,7 +209,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
     borderWidth:2,
-    width: "100%",
+    width: "100%"
    
   },
   card: {
@@ -215,7 +217,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFEFD5",
     padding: 10,
     borderRadius: 10,
-    width: 100,
+    width: 110,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -233,10 +235,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 6,
-    width: "100%",
+    width: "105%",
     height: 130,
-    marginLeft: 10,
+    marginLeft: 5,
     borderWidth:2,
+    
   },
   icon: {
     width: 50,
@@ -253,7 +256,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: "#FFF",
-    padding: 15,
+    marginLeft:20,
     borderRadius: 30, // half width,height for cycle
     width: 62,
     height: 62,
@@ -271,11 +274,15 @@ const styles = StyleSheet.create({
     height: 45,
   },
   //----------------------------------------------------------------
+  
+  
   middleSection: {
     alignItems: "center",
     justifyContent: "center",
-    width: "100%",
-    marginBottom: 15,
+    width: "auto",
+    marginBottom: 10,
+    borderWidth:2,
+    paddingHorizontal:20,
   },
   evaluateButton: {
     backgroundColor: "#ccfff5",
@@ -307,39 +314,37 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f0f0f0",
     borderRadius: 10,
-    paddingVertical: 25,
+    padding: 25,
+    borderWidth:2,
+    marginLeft: 20,
+    marginRight: 20,
+    marginVertical: 10,
   },
   graphContainer: {
-    backgroundColor: "#FFFFFF",
-    padding: 10,
-    borderRadius: 10,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 2,
-    borderWidth: 2,
-    bottom: 10,
+    width:"100%",
+    height:"50%",
+    backgroundColor: "#ffffff",
+    borderWidth:2,
+    bottom:5,
+    borderRadius:10,
+    
   },
   graphImage: {
-    width: "80%",
-    height: 150,
+    width:"100%",
+    height: "auto",
+
   },
   pieChartContainer: {
-    backgroundColor: "#FFFFFF",
-    padding: 10,
-    borderRadius: 10,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 2,
+    width:"100%",
+    height:"50%",
+    backgroundColor: "#ffffff",
+    borderWidth:2,
+    top:5,
+    borderRadius:10,
   },
   pieChartImage: {
-    width: "100%",
-    height: 150,
+    width: "80%",
+    height: "auto",
   },
   footer: {
     flexDirection: "row",
