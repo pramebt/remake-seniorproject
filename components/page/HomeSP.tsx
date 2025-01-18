@@ -6,6 +6,7 @@ import {
   Image,
   Pressable,
   ImageBackground,
+  TouchableOpacity,
   ScrollView,
   Animated,
 } from "react-native";
@@ -54,7 +55,8 @@ export const calculateAge = (
 export const HomeSP: FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const [room, setRoom] = useState<Room[]>([]); // กำหนดประเภทเป็น array ของ Child
-
+  const [children, setChildren] = useState<Child[]>([]); // กำหนดประเภทเป็น array ของ Child  const [children, setChildren] = useState<Child[]>([]); // กำหนดประเภทเป็น array ของ Child
+  // useEffect
   useFocusEffect(
     React.useCallback(() => {
       const fetchChildData = async () => {
@@ -74,7 +76,7 @@ export const HomeSP: FC = () => {
             if (response.ok) {
               const jsonResponse = await response.json();
 
-              if (jsonResponse.success && jsonResponse.room) {
+              if (jsonResponse.success && jsonResponse.children) {
                 const updatedChildren: Child[] = jsonResponse.children.map(
                   (child: Child) => {
                     const { years, months } = calculateAge(child.birthday); // calculate years/months
@@ -87,9 +89,9 @@ export const HomeSP: FC = () => {
                   }
                 );
 
-                setRoom(updatedChildren); // setting age child
+                setChildren(updatedChildren); // setting age child
               } else {
-                setRoom([]);
+                setChildren([]);
               }
             } else {
               console.error(
@@ -107,7 +109,10 @@ export const HomeSP: FC = () => {
       fetchChildData();
     }, [])
   );
-  const whenGotoAddChild = () => {
+  const whenGotoAddroom = () => {
+    navigation.navigate("addroom");
+  };
+  const whenGotoAddChildSP = () => {
     navigation.navigate("addchild");
   };
 
@@ -115,9 +120,9 @@ export const HomeSP: FC = () => {
     navigation.navigate("detail", { id });
   };
 
-  const whenGotoAssessment = (room: Room) => {
-    navigation.navigate("assessment", { room });
-  };
+  // const whenGotoAssessment = (room: Room) => {
+  //   navigation.navigate("assessment", { room });
+  // };
 
   const whenGotoChooseChild = () => {
     navigation.navigate("choosechild");
@@ -126,32 +131,44 @@ export const HomeSP: FC = () => {
   const [showIcons, setShowIcons] = useState(false); // สถานะการโชว์ไอคอน
   const translation1 = useRef(new Animated.Value(0)).current; // ไอคอนที่สอง
   const translation2 = useRef(new Animated.Value(0)).current; // ไอคอนที่สาม
+  const rotation = useRef(new Animated.Value(0)).current;
+  
   const handlePress = () => {
     if (showIcons) {
-      // ซ่อนไอคอนและแอนิเมชันย้อนกลับ
+      // ซ่อนไอคอนและหมุนกลับ
       Animated.parallel([
+        Animated.timing(rotation, {
+          toValue: 0, // หมุนกลับ
+          duration: 300,
+          useNativeDriver: true,
+        }),
         Animated.timing(translation1, {
-          toValue: 0,
+          toValue: 0, // เลื่อนกลับ
           duration: 300,
           useNativeDriver: true,
         }),
         Animated.timing(translation2, {
-          toValue: 0,
+          toValue: 0, // เลื่อนกลับ
           duration: 300,
           useNativeDriver: true,
         }),
       ]).start(() => setShowIcons(false));
     } else {
-      // โชว์ไอคอนและแอนิเมชันเลื่อนไปทางขวา
+      // แสดงไอคอนและหมุน 45 องศา
       setShowIcons(true);
       Animated.parallel([
+        Animated.timing(rotation, {
+          toValue: 1, // หมุน 45 องศา
+          duration: 300,
+          useNativeDriver: true,
+        }),
         Animated.timing(translation1, {
-          toValue: 80,
+          toValue: 80, // เลื่อนไปตำแหน่งที่ 1
           duration: 300,
           useNativeDriver: true,
         }),
         Animated.timing(translation2, {
-          toValue: 160,
+          toValue: 160, // เลื่อนไปตำแหน่งที่ 2
           duration: 300,
           useNativeDriver: true,
         }),
@@ -159,74 +176,79 @@ export const HomeSP: FC = () => {
     }
   };
 
+  const rotateInterpolation = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "45deg"], // หมุน 45 องศา
+  });
+
+
   return (
     <View style={styles.container}>
-      {/* Top Section */}
-      <View style={styles.topSection}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.roomInfo} className="bo">
-            <View style={styles.card}>
-              <Image
-                source={require("../../assets/image/chicken.png")}
-                style={styles.icon}
-              />
-              <Text style={styles.cardText}>อนุบาล ก.ไก่</Text>
-              <Text style={styles.countText}>20 คน</Text>
-            </View>
-            <View style={styles.card}>
-              <Image
-                source={require("../../assets/image/grape.jpg")}
-                style={styles.icon}
-              />
-              <Text style={styles.cardText}>อนุบาล อ.องุ่น</Text>
-              <Text style={styles.countText}>20 คน</Text>
-            </View>
-            <View style={styles.card}>
-              <Image
-                source={require("../../assets/image/banana.png")}
-                style={styles.icon}
-              />
-              <Text style={styles.cardText}>อนุบาล ค.คน</Text>
-              <Text style={styles.countText}>20 คน</Text>
-            </View>
+    {/* Top Section */}
+    <View style={styles.topSection}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={styles.roomInfo}>
+          <View style={styles.card}>
+            <Image
+              source={require("../../assets/image/chicken.png")}
+              style={styles.icon}
+            />
+            <Text style={styles.cardText}>อนุบาล ก.ไก่</Text>
+            <Text style={styles.countText}>20 คน</Text>
           </View>
-        </ScrollView>
-      </View>
-      <View style={styles.addContainer}>
-        {/* ไอคอนแรก */}
-        <Pressable style={styles.addButton} onPress={handlePress}>
-          {/* รูปไอคอน */}
-          <View style={styles.starIcon}>
-            <View style={[styles.starArm, styles.vertical]} />
-            {/* แฉกแนวนอน */}
-            <View style={[styles.starArm, styles.horizontal]} />
+          <View style={styles.card}>
+            <Image
+              source={require("../../assets/image/grape.jpg")}
+              style={styles.icon}
+            />
+            <Text style={styles.cardText}>อนุบาล อ.องุ่น</Text>
+            <Text style={styles.countText}>20 คน</Text>
           </View>
-        </Pressable>
+          <View style={styles.card}>
+            <Image
+              source={require("../../assets/image/banana.png")}
+              style={styles.icon}
+            />
+            <Text style={styles.cardText}>อนุบาล ค.คน</Text>
+            <Text style={styles.countText}>20 คน</Text>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+    <View style={styles.addContainer}>
+      {/* ไอคอนแรก */}
+      <TouchableOpacity style={styles.addButton} onPress={handlePress}>
+        <Animated.View
+          style={[styles.starIcon, { transform: [{ rotate: rotateInterpolation }], zIndex: 2}]}
+        >
+          <View style={[styles.starArm, styles.vertical]} />
+          <View style={[styles.starArm, styles.horizontal]} />
+        </Animated.View>
+      </TouchableOpacity>
 
-        {/* ไอคอนที่ 2 */}
-        {showIcons && (
-          <Animated.View
-            style={[
-              styles.animatedButton,
-              { transform: [{ translateX: translation1 }] },
-            ]}
-          >
-            <Pressable style={styles.addButton}>{/* รูปไอคอน */}</Pressable>
-          </Animated.View>
-        )}
+      {/* ไอคอนที่ 2 */}
+      {showIcons && (
+        <Animated.View
+          style={[styles.animatedButton, { transform: [{ translateX: translation1 }], position: 'absolute', zIndex: 1 }]}
+        >
+          <Pressable style={styles.addButton} onPress={whenGotoAddroom}>
+            {/* <Image source={require("../../assets/icons/add.png")} style={styles.icon} /> */}
+          </Pressable>
+        </Animated.View>
+      )}
 
-        {/* ไอคอนที่ 3 */}
-        {showIcons && (
-          <Animated.View
-            style={[
-              styles.animatedButton,
-              { transform: [{ translateX: translation2 }] },
-            ]}
-          >
-            <Pressable style={styles.addButton}>{/* รูปไอคอน */}</Pressable>
-          </Animated.View>
-        )}
-      </View>
+      {/* ไอคอนที่ 3 */}
+      {showIcons && (
+        <Animated.View
+          style={[styles.animatedButton, { transform: [{ translateX: translation2 }], position: 'absolute', zIndex: 1 }]}
+        >
+          <Pressable style={styles.addButton} onPress={whenGotoAddChildSP}>
+            {/* <Image source={require("../../assets/icons/add.png")} style={styles.icon} /> */}
+          </Pressable>
+        </Animated.View>
+      )}
+    </View>
+  
       {/* Middle Section */}
       <View style={styles.middleSection}>
         <Pressable style={styles.evaluateButton} onPress={whenGotoChooseChild}>
@@ -269,7 +291,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
-    borderWidth: 2,
     width: "100%",
   },
   card: {
@@ -298,12 +319,11 @@ const styles = StyleSheet.create({
     width: "105%",
     height: 130,
     marginLeft: 5,
-    borderWidth: 2,
+    
   },
   icon: {
     width: 50,
     height: 50,
-    marginBottom: 10,
   },
   cardText: {
     fontSize: 14,
@@ -345,7 +365,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  
   starArm: {
     position: "absolute",
     backgroundColor: "#8DD9BD",
