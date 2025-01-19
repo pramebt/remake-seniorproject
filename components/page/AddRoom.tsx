@@ -27,18 +27,13 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 
 // Form validation schema
-const AddChildSchema = z.object({
-  childName: z.string().min(5, "กรุณาระบุชื่อ-นามสกุลเด็ก").max(150),
-  nickname: z.string().min(2, "กรุณาระบุชื่อเล่นเด็ก").max(150),
-  birthday: z.date({
-    required_error: "กรุณาระบุวันเกิดเด็ก",
-    invalid_type_error: "รูปแบบวันเกิดไม่ถูกต้อง",
-  }),
-  gender: z.enum(["male", "female"]),
+const AddRoomSchema = z.object({
+  rooms_name: z.string().min(5, "กรุณาระบุชื่อห้องเรียน").max(150),
+  
 });
 
 // Type Definitions
-type AddChildModel = z.infer<typeof AddChildSchema>;
+type AddRoomModel = z.infer<typeof AddRoomSchema>;
 
 export const AddRoom: FC = () => {
   const {
@@ -46,27 +41,15 @@ export const AddRoom: FC = () => {
     handleSubmit,
     formState: { errors },
     setValue,
-  } = useForm<AddChildModel>({
-    resolver: zodResolver(AddChildSchema),
+  } = useForm<AddRoomModel>({
+    resolver: zodResolver(AddRoomSchema),
   });
   // hooks
   const navigation = useNavigation<NavigationProp<any>>();
 
-  const [childPic, setChildPic] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [roomsPic, setroomsPic] = useState<string | null>(null);
 
-  // ฟังก์ชันการจัดการการยืนยันวันที่
-  const handleConfirm = (selectedDate: Date) => {
-    setShowDatePicker(false);
-    // แปลงวันที่เป็นรูปแบบ YYYY-MM-DD
-    const formattedDate = format(selectedDate, "yyyy-MM-dd"); // ใช้ format จาก date-fns
-    setSelectedDate(formattedDate); // เก็บวันที่ที่แปลงแล้วใน state
-    setDate(selectedDate); // เก็บ Date object
-    setValue("birthday", selectedDate); // ส่งค่าไปยัง react-hook-form
-  };
-
+ 
   // ฟังก์ชันขออนุญาต
   const requestPermission = async () => {
     try {
@@ -114,64 +97,54 @@ export const AddRoom: FC = () => {
       const filename = new Date().getTime() + ".jpeg";
       const dest = imgDir + filename;
       await FileSystem.copyAsync({ from: selectedImageUri, to: dest });
-      setChildPic(dest); // ตั้ง path ของภาพที่บันทึกไว้ใน state
+      setroomsPic(dest); // ตั้ง path ของภาพที่บันทึกไว้ใน state
       console.log("Selected and saved Image URI:", dest);
     }
   };
 
   // ฟังก์ชันสำหรับส่งข้อมูล
-  const onSubmit: SubmitHandler<AddChildModel> = async (formData) => {
-    const userId = await AsyncStorage.getItem("userId");
+  const onSubmit: SubmitHandler<AddRoomModel> = async (formData) => {
+    const supervisor_id = await AsyncStorage.getItem("userId");
     console.log("Form data:", formData);
-    console.log("UserId: ", userId);
-    console.log("Date: ", selectedDate);
+    console.log("UserId: ", supervisor_id);
     //console.log("childPic data:", childPic);
 
     try {
       const data = new FormData();
       // Append values only if they are not null
-      if (formData.childName) {
-        data.append("childName", formData.childName);
+      if (formData.rooms_name) {
+        data.append("rooms_name", formData.rooms_name);
       }
-      if (formData.nickname) {
-        data.append("nickname", formData.nickname);
-      }
-      if (selectedDate) {
-        data.append("birthday", selectedDate);
-      }
-      if (formData.gender) {
-        data.append("gender", formData.gender);
-      }
-      if (userId) {
-        data.append("parent_id", userId);
+      if (supervisor_id) {
+        data.append("supervisor_id", supervisor_id);
       }
 
       // ตรวจสอบว่ามีรูปภาพหรือไม่
-      if (childPic) {
+      if (roomsPic) {
         try {
           // Use the file URI directly without fetching it
-          const filename = childPic.split("/").pop(); // Extract filename from URI
+          const filename = roomsPic.split("/").pop(); // Extract filename from URI
           const imageType = "image/jpeg"; // Change according to your image type
 
           // Append the image correctly to FormData
-          data.append("childPic", {
-            uri: childPic,
+          data.append("roomsPic", {
+            uri: roomsPic,
             name: filename,
             type: imageType, // Set the correct type
           } as any); // Use 'as any' to bypass type checking if necessary
 
-          console.log("childPic data:", childPic);
+          console.log("roomsPic data:", roomsPic);
           console.log("Appending image with filename:", filename);
         } catch (error) {
           console.error("Error processing image:", error);
         }
       } else {
-        console.log("No childPic provided");
+        console.log("No roomsPic provided");
       }
 
       // ส่งคำขอไปยัง API
       const resp = await fetch(
-        "https://senior-test-deploy-production-1362.up.railway.app/api/childs/addChild",
+        "https://senior-test-deploy-production-1362.up.railway.app/api/rooms/addRoom",
         {
           method: "POST",
           body: data,
@@ -183,12 +156,12 @@ export const AddRoom: FC = () => {
       console.log("API Response:", jsonResp);
 
       if (resp.ok) {
-        Alert.alert("สำเร็จ", "เพิ่มข้อมูลเด็กสำเร็จ");
+        Alert.alert("สำเร็จ", "เพิ่มห้องเรียนสำเร็จ");
         // await AsyncStorage.setItem("ProfileChild", jsonResp.childPic);
-        navigation.navigate("mainPR");
+        navigation.navigate("mainSP");
       } else if (resp.status === 409) {
-        Alert.alert("ไม่สำเร็จ", "มีเด็กในระบบอยู่แล้ว");
-        navigation.navigate("mainPR");
+        Alert.alert("ไม่สำเร็จ", "มีห้องเรียนนี้ในระบบอยู่แล้ว");
+        navigation.navigate("mainSP");
       } else {
         const errorResponse = await resp.text();
         console.error("Error response from server:", errorResponse);
@@ -227,8 +200,8 @@ export const AddRoom: FC = () => {
           <View style={styles.avatarContainer}>
             {/* placeholder of Picture */}
             <View style={styles.avtarFrame}>
-              {childPic ? (
-                <Image source={{ uri: childPic }} style={styles.avatar} />
+              {roomsPic ? (
+                <Image source={{ uri: roomsPic }} style={styles.avatar} />
               ) : (
                 <Image
                   source={require("../../assets/icons/userIcon.png")}
@@ -243,32 +216,28 @@ export const AddRoom: FC = () => {
               />
             </Pressable>
           </View>
-          <LinearGradient
-            colors={["#E2F0E9", "#F1FFEC", "#ECFFF8"]}
-            style={styles.container}
-          >
+          
             {/* Input Section */}
             <View style={styles.MiddleSection}>
-              <Text style={styles.OnInputText}>ชื่อ-นามสกุล</Text>
               <Controller
                 control={control}
-                name="childName"
+                name="rooms_name"
                 render={({ field: { onChange, value } }) => (
                   <>
                     <TextInput
                       style={[
                         styles.input,
-                        errors.childName && styles.errorInput,
+                        errors.rooms_name && styles.errorInput,
                       ]}
-                      placeholder="ชื่อ-สกุล"
+                      placeholder="ชื่อห้องเรียน"
                       onChangeText={onChange}
                       value={value}
                     />
-                    {errors.childName && (
+                    {errors.rooms_name && (
                       <Text style={styles.errorText}>
-                        {errors.childName && (
+                        {errors.rooms_name && (
                           <Text style={styles.errorText}>
-                            กรุณาระบุชื่อเด็ก
+                            กรุณาระบุชื่อห้องเรียน
                           </Text>
                         )}
                       </Text>
@@ -277,127 +246,9 @@ export const AddRoom: FC = () => {
                 )}
               />
 
-              <Text style={styles.OnInputText}>ชื่อเล่น</Text>
-              <Controller
-                control={control}
-                name="nickname"
-                render={({ field: { onChange, value } }) => (
-                  <>
-                    <TextInput
-                      style={[
-                        styles.input,
-                        errors.nickname && styles.errorInput,
-                      ]}
-                      placeholder="ชื่อเล่น"
-                      onChangeText={onChange}
-                      value={value}
-                    />
-                    {errors.nickname && (
-                      <Text style={styles.errorText}>
-                        {errors.nickname && (
-                          <Text style={styles.errorText}>
-                            กรุณาระบุชื่อเล่นเด็ก
-                          </Text>
-                        )}
-                      </Text>
-                    )}
-                  </>
-                )}
-              />
-
-              <Text style={styles.OnInputText}>วันเกิด</Text>
-
-              <TouchableOpacity
-                style={styles.input} // ใช้สไตล์เดียวกับ TextInput
-                onPress={() => setShowDatePicker(true)} // กดเพื่อเปิด DateTimePicker
-              >
-                <Text style={styles.inputText}>
-                  {selectedDate || "วันเกิดเด็ก"}
-                </Text>
-              </TouchableOpacity>
-
-              {showDatePicker &&
-                (Platform.OS === "ios" ? (
-                  <Modal
-                    transparent={true}
-                    animationType="slide"
-                    visible={showDatePicker}
-                  >
-                    <View style={styles.modalBackground}>
-                      <View style={styles.pickerContainer}>
-                        <DateTimePicker
-                          value={date}
-                          mode="date"
-                          display="inline"
-                          onChange={(event, selectedDate) => {
-                            setShowDatePicker(false);
-                            if (selectedDate) {
-                              handleConfirm(selectedDate);
-                            }
-                          }}
-                          textColor="black"
-                          themeVariant="light"
-                        />
-                      </View>
-                    </View>
-                  </Modal>
-                ) : (
-                  <DateTimePicker
-                    value={date}
-                    mode="date"
-                    display="calendar"
-                    onChange={(event, selectedDate) => {
-                      setShowDatePicker(false);
-                      if (selectedDate) {
-                        handleConfirm(selectedDate);
-                      }
-                    }}
-                  />
-                ))}
-
-              {errors.birthday && (
-                <Text style={styles.errorText}>กรุณาระบุวันเกิดเด็ก</Text>
-              )}
-
-              <Text style={styles.label}>เพศ</Text>
-              <View style={styles.genderContainer}>
-                <Controller
-                  control={control}
-                  name="gender"
-                  render={({ field: { onChange, value } }) => (
-                    <View style={styles.genderOptions}>
-                      <TouchableOpacity
-                        onPress={() => onChange("male")}
-                        style={styles.genderOption}
-                      >
-                        <View
-                          style={
-                            value === "male"
-                              ? styles.radioSelected
-                              : styles.radio
-                          }
-                        />
-                        <Text>ชาย</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => onChange("female")}
-                        style={styles.genderOption}
-                      >
-                        <View
-                          style={
-                            value === "female"
-                              ? styles.radioSelected
-                              : styles.radio
-                          }
-                        />
-                        <Text>หญิง</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                />
-              </View>
+              
             </View>
-          </LinearGradient>
+          
         </View>
         {/* Bottom Section */}
         <View style={styles.buttonContainer}>
@@ -428,7 +279,7 @@ const styles = StyleSheet.create({
     height: "100%",
     justifyContent: "center",
     padding: 10,
-    paddingTop: 50,
+   
     //borderWidth:2,
   },
   SafeArea: {
@@ -447,16 +298,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 10,
     top: 0,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 6,
-    // borderWidth: 2,
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: 4 },
+    // shadowOpacity: 0.3,
+    // shadowRadius: 3,
+    // elevation: 6,
+    borderWidth: 2,
     marginTop: 60, // Add marginTop to prevent overlapping
   },
   container: {
-    // flex: 1,
     width: "100%",
     height: "100%",
     justifyContent: "center",
@@ -471,11 +321,12 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 50,
     borderColor: "#D9D9D9",
-    borderWidth: 1,
+    borderWidth: 2,
     borderRadius: 25,
     paddingLeft: 20,
-    marginBottom: 10,
     backgroundColor: "#FFFFFF",
+    marginBottom: "100%",
+    
   },
   inputText: {
     left: 0,
@@ -485,40 +336,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     marginBottom: 5,
-  },
-  genderContainer: {
-    //flexDirection: "row",
-    flex: 1,
-    marginTop: 5,
-    marginBottom: 50,
-    alignContent: "center",
-    alignItems: "center",
-    //backgroundColor: "#000",
-  },
-  genderOptions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "70%",
-  },
-  genderOption: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  radio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#000",
-    marginRight: 10,
-    backgroundColor: "#fff",
-  },
-  radioSelected: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "#4CAF50",
-    marginRight: 10,
   },
   buttonContainer: {
     position: "absolute",
@@ -606,27 +423,5 @@ const styles = StyleSheet.create({
     textAlign: "left",
     left: 8,
     marginBottom: 2,
-  },
-  Datepicker: {
-    width: "100%",
-    borderWidth: 2,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalBackground: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Darken background
-  },
-  pickerContainer: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
+  },  
 });

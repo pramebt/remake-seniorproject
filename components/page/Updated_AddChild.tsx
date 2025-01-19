@@ -270,7 +270,32 @@ export const AddChild: FC = () => {
                   </>
                 )}
               />
-
+              <Controller
+                control={control}
+                name="childName"
+                render={({ field: { onChange, value } }) => (
+                  <>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        errors.childName && styles.errorInput,
+                      ]}
+                      placeholder="ชื่อ-สกุล"
+                      onChangeText={onChange}
+                      value={value}
+                    />
+                    {errors.childName && (
+                      <Text style={styles.errorText}>
+                        {errors.childName && (
+                          <Text style={styles.errorText}>
+                            กรุณาระบุชื่อเด็ก
+                          </Text>
+                        )}
+                      </Text>
+                    )}
+                  </>
+                )}
+              />
               <Text style={styles.OnInputText}>ชื่อเล่น</Text>
               <Controller
                 control={control}

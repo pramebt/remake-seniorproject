@@ -112,7 +112,7 @@ export const HomeSP: FC = () => {
   const whenGotoAddroom = () => {
     navigation.navigate("addroom");
   };
-  const whenGotoAddChildSP = () => {
+  const whenGotoAddChild = () => {
     navigation.navigate("addchild");
   };
 
@@ -242,7 +242,7 @@ export const HomeSP: FC = () => {
         <Animated.View
           style={[styles.animatedButton, { transform: [{ translateX: translation2 }], position: 'absolute', zIndex: 1 }]}
         >
-          <Pressable style={styles.addButton} onPress={whenGotoAddChildSP}>
+          <Pressable style={styles.addButton} onPress={whenGotoAddChild}>
             {/* <Image source={require("../../assets/icons/add.png")} style={styles.icon} /> */}
           </Pressable>
         </Animated.View>
