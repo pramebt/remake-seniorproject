@@ -54,7 +54,7 @@ export const calculateAge = (
 
 export const HomeSP: FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
-  const [room, setRoom] = useState<Room[]>([]); // กำหนดประเภทเป็น array ของ Child
+
   const [children, setChildren] = useState<Child[]>([]); // กำหนดประเภทเป็น array ของ Child  const [children, setChildren] = useState<Child[]>([]); // กำหนดประเภทเป็น array ของ Child
   // useEffect
   useFocusEffect(
@@ -112,8 +112,8 @@ export const HomeSP: FC = () => {
   const whenGotoAddroom = () => {
     navigation.navigate("addroom");
   };
-  const whenGotoAddChild = () => {
-    navigation.navigate("addchild");
+  const whenGotoAddchildSP = () => {
+    navigation.navigate("addchildSP");
   };
 
   const whenGotoDetail = (id: number) => {
@@ -242,7 +242,7 @@ export const HomeSP: FC = () => {
         <Animated.View
           style={[styles.animatedButton, { transform: [{ translateX: translation2 }], position: 'absolute', zIndex: 1 }]}
         >
-          <Pressable style={styles.addButton} onPress={whenGotoAddChild}>
+          <Pressable style={styles.addButton} onPress={whenGotoAddchildSP}>
             {/* <Image source={require("../../assets/icons/add.png")} style={styles.icon} /> */}
           </Pressable>
         </Animated.View>
