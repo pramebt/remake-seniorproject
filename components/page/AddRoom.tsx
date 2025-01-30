@@ -29,7 +29,6 @@ import { LinearGradient } from "expo-linear-gradient";
 // Form validation schema
 const AddRoomSchema = z.object({
   rooms_name: z.string().min(5, "กรุณาระบุชื่อห้องเรียน").max(150),
-  
 });
 
 // Type Definitions
@@ -49,7 +48,6 @@ export const AddRoom: FC = () => {
 
   const [roomsPic, setroomsPic] = useState<string | null>(null);
 
- 
   // ฟังก์ชันขออนุญาต
   const requestPermission = async () => {
     try {
@@ -105,8 +103,9 @@ export const AddRoom: FC = () => {
   // ฟังก์ชันสำหรับส่งข้อมูล
   const onSubmit: SubmitHandler<AddRoomModel> = async (formData) => {
     const supervisor_id = await AsyncStorage.getItem("userId");
-    console.log("Form data:", formData);
-    console.log("UserId: ", supervisor_id);
+    const token = await AsyncStorage.getItem("userToken");
+    // console.log("Form data:", formData);
+    // console.log("UserId: ", supervisor_id);
     //console.log("childPic data:", childPic);
 
     try {
@@ -144,10 +143,13 @@ export const AddRoom: FC = () => {
 
       // ส่งคำขอไปยัง API
       const resp = await fetch(
-        "https://senior-test-deploy-production-1362.up.railway.app/api/rooms/addRoom",
+        "https://senior-test-deploy-production-1362.up.railway.app/api/rooms/add-room",
         {
           method: "POST",
           body: data,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -216,39 +218,36 @@ export const AddRoom: FC = () => {
               />
             </Pressable>
           </View>
-          
-            {/* Input Section */}
-            <View style={styles.MiddleSection}>
-              <Controller
-                control={control}
-                name="rooms_name"
-                render={({ field: { onChange, value } }) => (
-                  <>
-                    <TextInput
-                      style={[
-                        styles.input,
-                        errors.rooms_name && styles.errorInput,
-                      ]}
-                      placeholder="ชื่อห้องเรียน"
-                      onChangeText={onChange}
-                      value={value}
-                    />
-                    {errors.rooms_name && (
-                      <Text style={styles.errorText}>
-                        {errors.rooms_name && (
-                          <Text style={styles.errorText}>
-                            กรุณาระบุชื่อห้องเรียน
-                          </Text>
-                        )}
-                      </Text>
-                    )}
-                  </>
-                )}
-              />
 
-              
-            </View>
-          
+          {/* Input Section */}
+          <View style={styles.MiddleSection}>
+            <Controller
+              control={control}
+              name="rooms_name"
+              render={({ field: { onChange, value } }) => (
+                <>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      errors.rooms_name && styles.errorInput,
+                    ]}
+                    placeholder="ชื่อห้องเรียน"
+                    onChangeText={onChange}
+                    value={value}
+                  />
+                  {errors.rooms_name && (
+                    <Text style={styles.errorText}>
+                      {errors.rooms_name && (
+                        <Text style={styles.errorText}>
+                          กรุณาระบุชื่อห้องเรียน
+                        </Text>
+                      )}
+                    </Text>
+                  )}
+                </>
+              )}
+            />
+          </View>
         </View>
         {/* Bottom Section */}
         <View style={styles.buttonContainer}>
@@ -279,7 +278,7 @@ const styles = StyleSheet.create({
     height: "100%",
     justifyContent: "center",
     padding: 10,
-   
+
     //borderWidth:2,
   },
   SafeArea: {
@@ -326,7 +325,6 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     backgroundColor: "#FFFFFF",
     marginBottom: "100%",
-    
   },
   inputText: {
     left: 0,
@@ -423,5 +421,5 @@ const styles = StyleSheet.create({
     textAlign: "left",
     left: 8,
     marginBottom: 2,
-  },  
+  },
 });

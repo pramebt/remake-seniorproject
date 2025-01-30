@@ -76,7 +76,7 @@ export const Assessment: FC = () => {
           <Image source={{ uri: child.childPic }} style={styles.profileIcon} />
           <View style={styles.profileInfo}>
             <View style={styles.detailsName}>
-              <Text style={styles.profileName}>{child.childName}</Text>
+              <Text style={styles.profileName}>{child.nickName}</Text>
             </View>
             <View style={styles.detailsAge}>
               <Text style={styles.profileAge}>{child.age}</Text>
@@ -124,15 +124,13 @@ export const Assessment: FC = () => {
           <Text style={styles.childDevtext}>Receptive Language(RL)</Text>
         </Pressable>
         {/* EL */}
-        {/* <Pressable style={styles.childDev} onPress={() => whenGotoEL(child)}> */}
-        <View style={styles.childDev}>
+        <Pressable style={styles.childDev} onPress={() => whenGotoEL(child)}>
           <Image
             source={require("../../assets/icons/EL.png")}
             style={styles.childDevIcon}
           />
           <Text style={styles.childDevtext}>Expressive Language(EL)</Text>
-        </View>
-        {/* </Pressable> */}
+        </Pressable>
         {/* PS */}
         <Pressable style={styles.childDev} onPress={() => whenGotoPS(child)}>
           <Image
@@ -151,7 +149,7 @@ export const Assessment: FC = () => {
               style={styles.Icon}
             />
           </Pressable>
-          <Pressable onPress={goBack} style={styles.homeButton}>
+          <Pressable onPress={whenGotoHome} style={styles.homeButton}>
             <Image
               source={require("../../assets/icons/home.png")}
               style={styles.Icon}

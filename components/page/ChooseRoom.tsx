@@ -17,33 +17,28 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import {
-  Child,
-  calculateAge,
-  AssessmentDetails,
-} from "../../components/page/HomePR";
+import { Room  } from "../../components/page/HomeSP";
 
-export const ChooseChild: FC = () => {
+export const ChooseRoom: FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
-  const [children, setChildren] = useState<Child[]>([]); // กำหนดประเภทเป็น array ของ Child
-  const [assessmentDetails, setAssessmentDetails] = useState<
-    AssessmentDetails[]
-  >([]);
+  const [rooms, setRoom] = useState<Room[]>([]); // กำหนดประเภทเป็น array ของ Child
+
+  [];
 
   useFocusEffect(
     React.useCallback(() => {
-      const fetchChildDataForParent = async () => {
+      const fetchRoomDataForSupervisor = async () => {
         try {
-          const parent_id = await AsyncStorage.getItem("userId");
+          const supervisor_id = await AsyncStorage.getItem("userId");
           const token = await AsyncStorage.getItem("userToken");
 
-          if (!parent_id) {
-            console.error("Parent ID is missing.");
+          if (!supervisor_id) {
+            console.error("supervisor ID is missing.");
             return;
           }
 
           const response = await fetch(
-            `https://senior-test-deploy-production-1362.up.railway.app/api/childs/get-child-data?parent_id=${parent_id}`,
+            `https://senior-test-deploy-production-1362.up.railway.app/api/rooms/get-room-data?supervisor_id=${supervisor_id}`,
             {
               headers: {
                 "Content-Type": "application/json",
@@ -55,29 +50,25 @@ export const ChooseChild: FC = () => {
           if (response.ok) {
             const jsonResponse = await response.json();
 
-            if (jsonResponse.children) {
-              const updatedChildren: Child[] = jsonResponse.children.map(
-                (child: Child) => {
-                  const { years, months } = calculateAge(child.birthday);
-                  const imageUrl = `https://senior-test-deploy-production-1362.up.railway.app/${child.childPic}`;
+            if (jsonResponse.rooms) {
+              const updatedRoom: Room[] = jsonResponse.rooms.map(
+                (rooms: Room) => {
+                  
+                  const imageUrl = `https://senior-test-deploy-production-1362.up.railway.app/${rooms.roomsPic}`;
                   return {
-                    ...child,
-                    age: `${years} ปี ${months} เดือน`,
-                    childPic: imageUrl,
+                    ...rooms,
+                    roomsPic: imageUrl,
                   };
                 }
               );
-              setChildren(updatedChildren);
+              setRoom(updatedRoom);
 
-              const allAssessments = jsonResponse.children.map(
-                (child: any) => child.assessments || []
+              const allAssessments = jsonResponse.rooms.map(
+                (rooms: any) => rooms.assessments || []
               );
-              setAssessmentDetails(allAssessments.flat());
-              console.log("Assessments fetched:", allAssessments);
             } else {
-              console.log("No children found.");
-              setChildren([]);
-              setAssessmentDetails([]);
+              console.log("No rooms found.");
+              setRoom([]);
             }
           } else {
             console.error(
@@ -89,22 +80,16 @@ export const ChooseChild: FC = () => {
         }
       };
 
-      fetchChildDataForParent();
+      fetchRoomDataForSupervisor();
     }, [])
   );
-
-  const whenGotoAddChild = () => {
-    navigation.navigate("addchild");
-  };
 
   const whenGotoDetail = (id: number) => {
     navigation.navigate("detail", { id });
   };
-
-  const whenGotoAssessment = (child: Child) => {
-    navigation.navigate("assessment", { child });
+  const whengotoChooseChildSP = (rooms:Room) => {
+    navigation.navigate("choosechildsp", { rooms });
   };
-
   // navigate goBack
   const goBack = () => {
     navigation.goBack();
@@ -114,11 +99,13 @@ export const ChooseChild: FC = () => {
       source={require("../../assets/background/bg2.png")}
       style={styles.background}
     >
-      <Text style={styles.header}>เลือกเด็กที่ต้องการประเมิน</Text>
+    
+      <Text style={styles.header}>เลือกห้องที่ต้องการประเมิน</Text>
       {/* Profile Card Section */}
       <View style={styles.midSection}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          {children.length === 0 ? (
+          {rooms.length === 0 ? (
+            
             <View style={styles.profileCardIntro}>
               <Image
                 source={require("../../assets/icons/User_Icon.png")}
@@ -128,10 +115,7 @@ export const ChooseChild: FC = () => {
                 <View style={styles.IntroContainer}>
                   <Text style={styles.TextIntro}>กรุณาเพิ่มข้อมูลเด็ก</Text>
                 </View>
-                <Pressable
-                  style={styles.detailButtonIntro}
-                  onPress={whenGotoAddChild}
-                >
+                <Pressable style={styles.detailButtonIntro}>
                   <Text style={styles.detailTextIntro}>
                     เพิ่มข้อมูลเด็กที่นี่
                   </Text>
@@ -139,45 +123,28 @@ export const ChooseChild: FC = () => {
               </View>
             </View>
           ) : (
-            children.map((child) => (
-              <View
-                key={child.child_id}
-                style={
-                  child.gender === "male"
-                    ? styles.profileCardBoy
-                    : styles.profileCardGirl
-                }
-              >
-                <Pressable onPress={() => whenGotoAssessment(child)}>
-                  <Image
-                    source={
-                      child.childPic
-                        ? { uri: child.childPic }
-                        : require("../../assets/icons/User_Icon.png")
-                    }
-                    style={styles.profileIcon}
-                  />
-                </Pressable>
+            rooms.map((rooms) => (
+                
+              <Pressable key={rooms.rooms_id} style={styles.profileCardBoy} onPress={() =>whengotoChooseChildSP(rooms)}>
+               
+                <Image
+                  source={
+                    rooms.roomsPic
+                      ? { uri: rooms.roomsPic }
+                      : require("../../assets/icons/User_Icon.png")
+                  }
+                  style={styles.profileIcon}
+                />
+
                 <View style={styles.profileInfo}>
                   <View style={styles.detailsName}>
-                    <Text style={styles.profileName}>{child.nickName}</Text>
+                    <Text style={styles.profileName}>{rooms.rooms_name}</Text>
                   </View>
                   <View style={styles.detailsAge}>
-                    <Text style={styles.profileAge}>{child.age}</Text>
+                    <Text style={styles.profileAge}>{rooms.childs_count}</Text>
                   </View>
-                  <Pressable
-                    key={child.child_id}
-                    style={
-                      child.gender === "male"
-                        ? styles.detailsButtonBoy
-                        : styles.detailsButtonGirl
-                    }
-                    //onPress={() => whenGotoDetail(child.id)}
-                  >
-                    <Text style={styles.detailsText}>ดูรายละเอียด</Text>
-                  </Pressable>
                 </View>
-              </View>
+                </Pressable>
             ))
           )}
         </ScrollView>
@@ -207,6 +174,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     //borderWidth: 2,
   },
+ 
   ScrollView: {
     width: "100%",
     borderWidth: 2,

@@ -18,6 +18,11 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
+import {
+  usePushNotifications,
+  sendExpoPushTokenToBackend,
+} from "../../app/usePushNotifications";
+
 export interface Child {
   child_id: number;
   childName: string;
@@ -26,6 +31,14 @@ export interface Child {
   gender: string;
   childPic: string;
   age?: number; // Add age property (optional)
+}
+
+export interface Room {
+  rooms_id: number;
+  rooms_name: string;
+  roomsPic: string;
+  childs_count: number;
+
 }
 
 // fn calculate age
@@ -55,20 +68,43 @@ export const calculateAge = (
 export const HomeSP: FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
 
-  const [children, setChildren] = useState<Child[]>([]); // กำหนดประเภทเป็น array ของ Child  const [children, setChildren] = useState<Child[]>([]); // กำหนดประเภทเป็น array ของ Child
+  const [rooms, setRoom] = useState<Room[]>([]);
+
+  const { expoPushToken } = usePushNotifications();
   // useEffect
   useFocusEffect(
     React.useCallback(() => {
       const fetchChildData = async () => {
         try {
           const supervisor_id = await AsyncStorage.getItem("userId");
+          const token = await AsyncStorage.getItem("userToken");
+
+          if (!supervisor_id) {
+            console.error("Parent ID is missing.");
+            return;
+          }
+
+          if (!token) {
+            console.error("token is missing.");
+            return;
+          }
+
+          if (expoPushToken) {
+            const user_id = parseInt(supervisor_id, 10);
+            if (!isNaN(user_id)) {
+              await sendExpoPushTokenToBackend(expoPushToken, user_id);
+            } else {
+              console.error("Invalid user ID.");
+            }
+          }
 
           if (supervisor_id) {
             const response = await fetch(
-              `https://senior-test-deploy-production-1362.up.railway.app/api/childs/get-child-data?parent_id=${supervisor_id}`,
+              `https://senior-test-deploy-production-1362.up.railway.app/api/rooms/get-all-data?supervisor_id=${supervisor_id}`,
               {
                 headers: {
                   "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
                 },
               }
             );
@@ -76,22 +112,21 @@ export const HomeSP: FC = () => {
             if (response.ok) {
               const jsonResponse = await response.json();
 
-              if (jsonResponse.success && jsonResponse.children) {
-                const updatedChildren: Child[] = jsonResponse.children.map(
-                  (child: Child) => {
-                    const { years, months } = calculateAge(child.birthday); // calculate years/months
-                    const imageUrl = `https://senior-test-deploy-production-1362.up.railway.app/${child.childPic}`;
+              if (jsonResponse.success && jsonResponse.rooms) {
+                const updatedRoom: Room[] = jsonResponse.rooms.map(
+                  (rooms: Room) => {
+                    
+                    const imageUrl = `https://senior-test-deploy-production-1362.up.railway.app/${rooms.roomsPic}`;
                     return {
-                      ...child,
-                      age: `${years} ปี ${months} เดือน`, // set age
-                      childPic: imageUrl,
+                      ...rooms,
+                      roomsPic: imageUrl,
                     };
                   }
                 );
 
-                setChildren(updatedChildren); // setting age child
+                setRoom(updatedRoom); // setting age child
               } else {
-                setChildren([]);
+                setRoom([]);
               }
             } else {
               console.error(
@@ -116,23 +151,19 @@ export const HomeSP: FC = () => {
     navigation.navigate("addchildSP");
   };
 
-  const whenGotoDetail = (id: number) => {
-    navigation.navigate("detail", { id });
+ 
+
+  const whenGotoChooseRoom = () => {
+    navigation.navigate("chooseroom");
   };
 
-  // const whenGotoAssessment = (room: Room) => {
-  //   navigation.navigate("assessment", { room });
-  // };
-
-  const whenGotoChooseChild = () => {
-    navigation.navigate("choosechild");
-  };
+  
 
   const [showIcons, setShowIcons] = useState(false); // สถานะการโชว์ไอคอน
   const translation1 = useRef(new Animated.Value(0)).current; // ไอคอนที่สอง
   const translation2 = useRef(new Animated.Value(0)).current; // ไอคอนที่สาม
   const rotation = useRef(new Animated.Value(0)).current;
-  
+
   const handlePress = () => {
     if (showIcons) {
       // ซ่อนไอคอนและหมุนกลับ
@@ -143,11 +174,6 @@ export const HomeSP: FC = () => {
           useNativeDriver: true,
         }),
         Animated.timing(translation1, {
-          toValue: 0, // เลื่อนกลับ
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(translation2, {
           toValue: 0, // เลื่อนกลับ
           duration: 300,
           useNativeDriver: true,
@@ -167,11 +193,6 @@ export const HomeSP: FC = () => {
           duration: 300,
           useNativeDriver: true,
         }),
-        Animated.timing(translation2, {
-          toValue: 160, // เลื่อนไปตำแหน่งที่ 2
-          duration: 300,
-          useNativeDriver: true,
-        }),
       ]).start();
     }
   };
@@ -181,77 +202,53 @@ export const HomeSP: FC = () => {
     outputRange: ["0deg", "45deg"], // หมุน 45 องศา
   });
 
-
   return (
     <View style={styles.container}>
-    {/* Top Section */}
-    <View style={styles.topSection}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={styles.roomInfo}>
-          <View style={styles.card}>
-            <Image
-              source={require("../../assets/image/chicken.png")}
-              style={styles.icon}
-            />
-            <Text style={styles.cardText}>อนุบาล ก.ไก่</Text>
-            <Text style={styles.countText}>20 คน</Text>
+      {/* Top Section */}
+      <View style={styles.topSection}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={styles.roomInfo}>
+            
           </View>
-          <View style={styles.card}>
-            <Image
-              source={require("../../assets/image/grape.jpg")}
-              style={styles.icon}
-            />
-            <Text style={styles.cardText}>อนุบาล อ.องุ่น</Text>
-            <Text style={styles.countText}>20 คน</Text>
-          </View>
-          <View style={styles.card}>
-            <Image
-              source={require("../../assets/image/banana.png")}
-              style={styles.icon}
-            />
-            <Text style={styles.cardText}>อนุบาล ค.คน</Text>
-            <Text style={styles.countText}>20 คน</Text>
-          </View>
-        </View>
-      </ScrollView>
-    </View>
-    <View style={styles.addContainer}>
-      {/* ไอคอนแรก */}
-      <TouchableOpacity style={styles.addButton} onPress={handlePress}>
-        <Animated.View
-          style={[styles.starIcon, { transform: [{ rotate: rotateInterpolation }], zIndex: 2}]}
-        >
-          <View style={[styles.starArm, styles.vertical]} />
-          <View style={[styles.starArm, styles.horizontal]} />
-        </Animated.View>
-      </TouchableOpacity>
+        </ScrollView>
+      </View>
+      <View style={styles.addContainer}>
+        {/* ไอคอนแรก */}
+        <TouchableOpacity style={styles.addButton} onPress={handlePress}>
+          <Animated.View
+            style={[
+              styles.starIcon,
+              { transform: [{ rotate: rotateInterpolation }], zIndex: 2 },
+            ]}
+          >
+            <View style={[styles.starArm, styles.vertical]} />
+            <View style={[styles.starArm, styles.horizontal]} />
+          </Animated.View>
+        </TouchableOpacity>
 
-      {/* ไอคอนที่ 2 */}
-      {showIcons && (
-        <Animated.View
-          style={[styles.animatedButton, { transform: [{ translateX: translation1 }], position: 'absolute', zIndex: 1 }]}
-        >
-          <Pressable style={styles.addButton} onPress={whenGotoAddroom}>
-            {/* <Image source={require("../../assets/icons/add.png")} style={styles.icon} /> */}
-          </Pressable>
-        </Animated.View>
-      )}
+        {/* ไอคอนที่ 2 */}
+        {showIcons && (
+          <Animated.View
+            style={[
+              styles.animatedButton,
+              {
+                transform: [{ translateX: translation1 }],
+                position: "absolute",
+                zIndex: 1,
+              },
+            ]}
+          >
+            <Pressable style={styles.addButton} onPress={whenGotoAddroom}>
+              {/* <Image source={require("../../assets/icons/add.png")} style={styles.icon} /> */}
+            </Pressable>
+          </Animated.View>
+        )}
 
-      {/* ไอคอนที่ 3 */}
-      {showIcons && (
-        <Animated.View
-          style={[styles.animatedButton, { transform: [{ translateX: translation2 }], position: 'absolute', zIndex: 1 }]}
-        >
-          <Pressable style={styles.addButton} onPress={whenGotoAddchildSP}>
-            {/* <Image source={require("../../assets/icons/add.png")} style={styles.icon} /> */}
-          </Pressable>
-        </Animated.View>
-      )}
-    </View>
-  
+      </View>
+
       {/* Middle Section */}
       <View style={styles.middleSection}>
-        <Pressable style={styles.evaluateButton} onPress={whenGotoChooseChild}>
+        <Pressable style={styles.evaluateButton} onPress={whenGotoChooseRoom}>
           <Image
             source={require("../../assets/icons/assessment.png")}
             style={styles.asessmentIcon}
@@ -319,7 +316,6 @@ const styles = StyleSheet.create({
     width: "105%",
     height: 130,
     marginLeft: 5,
-    
   },
   icon: {
     width: 50,

@@ -12,38 +12,37 @@ import {
   useNavigation,
   NavigationProp,
   useFocusEffect,
+  RouteProp,
+  useRoute,
 } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import {
-  Child,
-  calculateAge,
-  AssessmentDetails,
-} from "../../components/page/HomePR";
-
-export const ChooseChild: FC = () => {
+import { Child, calculateAge, Room } from "../../components/page/HomeSP";
+type ChooseChildSPRountprop = RouteProp<
+  { assessment: { rooms: Room } },
+  "assessment"
+>;
+export const ChooseChildSP: FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const [children, setChildren] = useState<Child[]>([]); // กำหนดประเภทเป็น array ของ Child
-  const [assessmentDetails, setAssessmentDetails] = useState<
-    AssessmentDetails[]
-  >([]);
-
+  const route = useRoute<ChooseChildSPRountprop>();
+  const { rooms } = route.params;
   useFocusEffect(
     React.useCallback(() => {
       const fetchChildDataForParent = async () => {
         try {
-          const parent_id = await AsyncStorage.getItem("userId");
+          const supervisor_id = await AsyncStorage.getItem("userId");
           const token = await AsyncStorage.getItem("userToken");
 
-          if (!parent_id) {
-            console.error("Parent ID is missing.");
+          if (!supervisor_id) {
+            console.error("Supervisor ID is missing.");
             return;
           }
 
           const response = await fetch(
-            `https://senior-test-deploy-production-1362.up.railway.app/api/childs/get-child-data?parent_id=${parent_id}`,
+            `https://senior-test-deploy-production-1362.up.railway.app/api/rooms/get-room-data?supervisor_id=${supervisor_id}`,
             {
               headers: {
                 "Content-Type": "application/json",
@@ -72,12 +71,9 @@ export const ChooseChild: FC = () => {
               const allAssessments = jsonResponse.children.map(
                 (child: any) => child.assessments || []
               );
-              setAssessmentDetails(allAssessments.flat());
-              console.log("Assessments fetched:", allAssessments);
             } else {
               console.log("No children found.");
               setChildren([]);
-              setAssessmentDetails([]);
             }
           } else {
             console.error(
@@ -114,6 +110,19 @@ export const ChooseChild: FC = () => {
       source={require("../../assets/background/bg2.png")}
       style={styles.background}
     >
+      <View style={styles.topSection}>
+        <View style={styles.profileCardBoy}>
+          <Image source={{ uri: rooms.roomsPic }} style={styles.profileIcon} />
+          <View style={styles.profileInfo}>
+            <View style={styles.detailsName}>
+              <Text style={styles.profileName}>{rooms.rooms_name}</Text>
+            </View>
+            {/* <View style={styles.detailsAge}>
+              <Text style={styles.profileAge}>{childs_count}</Text>
+            </View> */}
+          </View>
+        </View>
+      </View>
       <Text style={styles.header}>เลือกเด็กที่ต้องการประเมิน</Text>
       {/* Profile Card Section */}
       <View style={styles.midSection}>
@@ -160,7 +169,7 @@ export const ChooseChild: FC = () => {
                 </Pressable>
                 <View style={styles.profileInfo}>
                   <View style={styles.detailsName}>
-                    <Text style={styles.profileName}>{child.nickName}</Text>
+                    <Text style={styles.profileName}>{child.nickname}</Text>
                   </View>
                   <View style={styles.detailsAge}>
                     <Text style={styles.profileAge}>{child.age}</Text>
@@ -207,6 +216,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     //borderWidth: 2,
   },
+  topSection: {
+    width: "100%",
+    marginTop: 60,
+    paddingBottom: 20,
+    alignItems: "center",
+  },
   ScrollView: {
     width: "100%",
     borderWidth: 2,
@@ -228,7 +243,7 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 24,
     fontWeight: "bold",
-    marginTop: 80,
+
     marginBottom: 20,
   },
   profileCardGirl: {
