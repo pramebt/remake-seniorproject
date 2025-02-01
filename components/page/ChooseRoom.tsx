@@ -17,7 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { Room  } from "../../components/page/HomeSP";
+import { Room } from "../../components/page/HomeSP";
 
 export const ChooseRoom: FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
@@ -53,7 +53,6 @@ export const ChooseRoom: FC = () => {
             if (jsonResponse.rooms) {
               const updatedRoom: Room[] = jsonResponse.rooms.map(
                 (rooms: Room) => {
-                  
                   const imageUrl = `https://senior-test-deploy-production-1362.up.railway.app/${rooms.roomsPic}`;
                   return {
                     ...rooms,
@@ -87,7 +86,7 @@ export const ChooseRoom: FC = () => {
   const whenGotoDetail = (id: number) => {
     navigation.navigate("detail", { id });
   };
-  const whengotoChooseChildSP = (rooms:Room) => {
+  const whengotoChooseChildSP = (rooms: Room) => {
     navigation.navigate("choosechildsp", { rooms });
   };
   // navigate goBack
@@ -99,13 +98,15 @@ export const ChooseRoom: FC = () => {
       source={require("../../assets/background/bg2.png")}
       style={styles.background}
     >
-    
       <Text style={styles.header}>เลือกห้องที่ต้องการประเมิน</Text>
       {/* Profile Card Section */}
       <View style={styles.midSection}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.ScrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {rooms.length === 0 ? (
-            
             <View style={styles.profileCardIntro}>
               <Image
                 source={require("../../assets/icons/User_Icon.png")}
@@ -124,9 +125,11 @@ export const ChooseRoom: FC = () => {
             </View>
           ) : (
             rooms.map((rooms) => (
-                
-              <Pressable key={rooms.rooms_id} style={styles.profileCardBoy} onPress={() =>whengotoChooseChildSP(rooms)}>
-               
+              <Pressable
+                key={rooms.rooms_id}
+                style={styles.CardRoom}
+                onPress={() => whengotoChooseChildSP(rooms)}
+              >
                 <Image
                   source={
                     rooms.roomsPic
@@ -144,7 +147,7 @@ export const ChooseRoom: FC = () => {
                     <Text style={styles.profileAge}>{rooms.childs_count}</Text>
                   </View>
                 </View>
-                </Pressable>
+              </Pressable>
             ))
           )}
         </ScrollView>
@@ -174,15 +177,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     //borderWidth: 2,
   },
- 
+
   ScrollView: {
-    width: "100%",
+    flex: 1, // ใช้พื้นที่ทั้งหมด
+    width: "100%", // ให้เต็มความกว้างของหน้าจอ
     borderWidth: 2,
-    borderRadius: 30,
+    borderRadius: 20,
+  },
+  scrollContent: {
+    alignItems: "center", // จัดเนื้อหาใน ScrollView ให้อยู่กึ่งกลางแนวนอน
+    paddingBottom: 20, // เพิ่มพื้นที่ด้านล่าง
   },
   midSection: {
     height: "70%",
-  },
+    width: "100%",
+    justifyContent: "center", // จัดกึ่งกลางแนวตั้ง
+    alignItems: "center", // จัดกึ่งกลางแนวนอน,
+  }, 
   bottomSection: {
     width: "auto",
     height: "15%",
@@ -199,33 +210,22 @@ const styles = StyleSheet.create({
     marginTop: 80,
     marginBottom: 20,
   },
-  profileCardGirl: {
+
+  CardRoom: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffd7e5",
-    padding: 10,
-    borderRadius: 30,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 6,
-    width: 330,
-    marginTop: 15,
-  },
-  profileCardBoy: {
-    flexDirection: "row",
-    alignItems: "center",
+    justifyContent: "center", // จัดเนื้อหาภายในการ์ดให้อยู่กึ่งกลาง
     backgroundColor: "#c5e5fc",
     padding: 10,
-    borderRadius: 30,
+    borderRadius: 20,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 6,
-    width: 330,
+    width: 330, // ใช้ความกว้างแบบยืดหยุ่น
     marginTop: 15,
+    height: 120,
   },
   profileIcon: {
     width: 60,

@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "auto",
     marginBottom: 10,
-    borderWidth: 2,
+    
     paddingHorizontal: 20,
   },
   evaluateButton: {
@@ -415,7 +415,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f0f0",
     borderRadius: 10,
     padding: 20,
-    borderWidth: 2,
     marginLeft: 20,
     marginRight: 20,
     marginVertical: 10,
@@ -426,7 +425,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "50%",
     backgroundColor: "#ffffff",
-    borderWidth: 2,
     bottom: 5,
     borderRadius: 10,
   },
@@ -438,7 +436,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "50%",
     backgroundColor: "#ffffff",
-    borderWidth: 2,
     top: 5,
     borderRadius: 10,
   },

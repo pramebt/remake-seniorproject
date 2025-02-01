@@ -35,6 +35,7 @@ export const ChooseChildSP: FC = () => {
         try {
           const supervisor_id = await AsyncStorage.getItem("userId");
           const token = await AsyncStorage.getItem("userToken");
+          
 
           if (!supervisor_id) {
             console.error("Supervisor ID is missing.");
@@ -42,7 +43,7 @@ export const ChooseChildSP: FC = () => {
           }
 
           const response = await fetch(
-            `https://senior-test-deploy-production-1362.up.railway.app/api/rooms/get-room-data?supervisor_id=${supervisor_id}`,
+            `https://senior-test-deploy-production-1362.up.railway.app/api/rooms/get-child-data-of-room?supervisor_id=${supervisor_id}&rooms_id=${rooms.rooms_id}`,
             {
               headers: {
                 "Content-Type": "application/json",
@@ -53,6 +54,8 @@ export const ChooseChildSP: FC = () => {
 
           if (response.ok) {
             const jsonResponse = await response.json();
+            console.log("json response", jsonResponse);
+            console.log("child response", jsonResponse.roomData.children);
 
             if (jsonResponse.children) {
               const updatedChildren: Child[] = jsonResponse.children.map(
@@ -126,7 +129,11 @@ export const ChooseChildSP: FC = () => {
       <Text style={styles.header}>เลือกเด็กที่ต้องการประเมิน</Text>
       {/* Profile Card Section */}
       <View style={styles.midSection}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.ScrollView}
+          contentContainerStyle={styles.scrollContent} // กำหนดการจัดเรียงเนื้อหา
+          showsVerticalScrollIndicator={false}
+        >
           {children.length === 0 ? (
             <View style={styles.profileCardIntro}>
               <Image
@@ -217,18 +224,27 @@ const styles = StyleSheet.create({
     //borderWidth: 2,
   },
   topSection: {
+    flex:1,
     width: "100%",
     marginTop: 60,
     paddingBottom: 20,
     alignItems: "center",
   },
   ScrollView: {
-    width: "100%",
-    borderWidth: 2,
-    borderRadius: 30,
+    flex: 1, // ใช้พื้นที่ทั้งหมด
+    width: "100%", // ให้เต็มความกว้างของหน้าจอ
+    borderRadius: 20,
+  },
+  scrollContent: {
+    alignItems: "center", // จัดเนื้อหาใน ScrollView ให้อยู่กึ่งกลางแนวนอน
+    paddingBottom: 20, // เพิ่มพื้นที่ด้านล่าง
   },
   midSection: {
-    height: "70%",
+    height: "58%",
+    width: "100%",
+    justifyContent: "center", // จัดกึ่งกลางแนวตั้ง
+ 
+    alignItems: "center", // จัดกึ่งกลางแนวนอน,
   },
   bottomSection: {
     width: "auto",
@@ -243,7 +259,6 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 24,
     fontWeight: "bold",
-
     marginBottom: 20,
   },
   profileCardGirl: {
