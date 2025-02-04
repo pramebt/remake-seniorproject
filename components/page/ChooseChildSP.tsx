@@ -92,8 +92,8 @@ export const ChooseChildSP: FC = () => {
     }, [])
   );
 
-  const whenGotoAddChild = () => {
-    navigation.navigate("addchild");
+  const whenGotoAddChildSP = () => {
+    navigation.navigate("addchildSP");
   };
 
   const whenGotoDetail = (id: number) => {
@@ -146,7 +146,7 @@ export const ChooseChildSP: FC = () => {
                 </View>
                 <Pressable
                   style={styles.detailButtonIntro}
-                  onPress={whenGotoAddChild}
+                  onPress={whenGotoAddChildSP}
                 >
                   <Text style={styles.detailTextIntro}>
                     เพิ่มข้อมูลเด็กที่นี่
@@ -159,9 +159,9 @@ export const ChooseChildSP: FC = () => {
               <View
                 key={child.child_id}
                 style={
-                  child.gender === "male"
-                    ? styles.profileCardBoy
-                    : styles.profileCardGirl
+                  
+                     styles.profileCardBoy
+                   
                 }
               >
                 <Pressable onPress={() => whenGotoAssessment(child)}>

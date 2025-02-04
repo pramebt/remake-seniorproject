@@ -48,7 +48,8 @@ export const ChooseRoom: FC = () => {
           );
 
           if (response.ok) {
-            const jsonResponse = await response.json();
+            const jsonResponse = await response.json(); 
+            console.log("📡 API Response:", jsonResponse); 
 
             if (jsonResponse.rooms) {
               const updatedRoom: Room[] = jsonResponse.rooms.map(
@@ -57,14 +58,13 @@ export const ChooseRoom: FC = () => {
                   return {
                     ...rooms,
                     roomsPic: imageUrl,
+                    colors: rooms.colors || "#c5e5fc",
                   };
                 }
               );
               setRoom(updatedRoom);
 
-              const allAssessments = jsonResponse.rooms.map(
-                (rooms: any) => rooms.assessments || []
-              );
+              
             } else {
               console.log("No rooms found.");
               setRoom([]);
@@ -127,7 +127,8 @@ export const ChooseRoom: FC = () => {
             rooms.map((rooms) => (
               <Pressable
                 key={rooms.rooms_id}
-                style={styles.CardRoom}
+                style={[styles.CardRoom,{ backgroundColor: rooms.colors || "#c5e5fc" }]}
+                
                 onPress={() => whengotoChooseChildSP(rooms)}
               >
                 <Image
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center", // จัดเนื้อหาภายในการ์ดให้อยู่กึ่งกลาง
-    backgroundColor: "#c5e5fc",
+    
     padding: 10,
     borderRadius: 20,
     shadowColor: "#000",
@@ -358,4 +359,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  
 });

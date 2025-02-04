@@ -38,7 +38,7 @@ export interface Room {
   rooms_name: string;
   roomsPic: string;
   childs_count: number;
-
+  colors: string;
 }
 
 // fn calculate age
@@ -111,22 +111,24 @@ export const HomeSP: FC = () => {
 
             if (response.ok) {
               const jsonResponse = await response.json();
-
-              if (jsonResponse.success && jsonResponse.rooms) {
+              console.log("json response HOME: ", jsonResponse);
+              if (jsonResponse.rooms) {
                 const updatedRoom: Room[] = jsonResponse.rooms.map(
                   (rooms: Room) => {
-                    
                     const imageUrl = `https://senior-test-deploy-production-1362.up.railway.app/${rooms.roomsPic}`;
                     return {
                       ...rooms,
                       roomsPic: imageUrl,
+                      colors: rooms.colors || "#c5e5fc",
                     };
                   }
                 );
 
                 setRoom(updatedRoom); // setting age child
+                
               } else {
                 setRoom([]);
+                
               }
             } else {
               console.error(
@@ -151,13 +153,13 @@ export const HomeSP: FC = () => {
     navigation.navigate("addchildSP");
   };
 
- 
+  const whengotoChooseChildSP = (rooms: Room) => {
+    navigation.navigate("choosechildsp", { rooms });
+  };
 
   const whenGotoChooseRoom = () => {
     navigation.navigate("chooseroom");
   };
-
-  
 
   const [showIcons, setShowIcons] = useState(false); // สถานะการโชว์ไอคอน
   const translation1 = useRef(new Animated.Value(0)).current; // ไอคอนที่สอง
@@ -208,7 +210,63 @@ export const HomeSP: FC = () => {
       <View style={styles.topSection}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.roomInfo}>
-            
+            <ScrollView
+              style={styles.ScrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {rooms.length === 0 ? (
+                <View style={styles.profileCardIntro}>
+                  <Image
+                    source={require("../../assets/icons/User_Icon.png")}
+                    style={styles.profileIcon}
+                  />
+                  <View style={styles.profileInfo}>
+                    <View style={styles.IntroContainer}>
+                      <Text style={styles.TextIntro}>กรุณาเพิ่มข้อมูลเด็ก</Text>
+                    </View>
+                    <Pressable style={styles.detailButtonIntro}>
+                      <Text style={styles.detailTextIntro}>
+                        เพิ่มข้อมูลเด็กที่นี่
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ) : (
+                rooms.map((rooms) => (
+                  <Pressable
+                    key={rooms.rooms_id}
+                    style={[
+                      styles.CardRoom,
+                      { backgroundColor: rooms.colors || "#c5e5fc" },
+                    ]}
+                    onPress={() => whengotoChooseChildSP(rooms)}
+                  >
+                    <Image
+                      source={
+                        rooms.roomsPic
+                          ? { uri: rooms.roomsPic }
+                          : require("../../assets/icons/User_Icon.png")
+                      }
+                      style={styles.profileIcon}
+                    />
+
+                    <View style={styles.profileInfo}>
+                      <View style={styles.detailsName}>
+                        <Text style={styles.profileName}>
+                          {rooms.rooms_name}
+                        </Text>
+                      </View>
+                      <View style={styles.detailsAge}>
+                        <Text style={styles.profileAge}>
+                          {rooms.childs_count}
+                        </Text>
+                      </View>
+                    </View>
+                  </Pressable>
+                ))
+              )}
+            </ScrollView>
           </View>
         </ScrollView>
       </View>
@@ -243,7 +301,6 @@ export const HomeSP: FC = () => {
             </Pressable>
           </Animated.View>
         )}
-
       </View>
 
       {/* Middle Section */}
@@ -381,7 +438,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "auto",
     marginBottom: 10,
-    
+
     paddingHorizontal: 20,
   },
   evaluateButton: {
@@ -456,4 +513,113 @@ const styles = StyleSheet.create({
     height: 30,
   },
   //------------------------------------------------------------------
+  CardRoom: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center", // จัดเนื้อหาภายในการ์ดให้อยู่กึ่งกลาง
+    padding: 10,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 6,
+    width: 330, // ใช้ความกว้างแบบยืดหยุ่น
+    marginTop: 15,
+    height: 120,
+  },
+  ScrollView: {
+    flex: 1, // ใช้พื้นที่ทั้งหมด
+    width: "100%", // ให้เต็มความกว้างของหน้าจอ
+    borderWidth: 2,
+    borderRadius: 20,
+  },
+  scrollContent: {
+    alignItems: "center", // จัดเนื้อหาใน ScrollView ให้อยู่กึ่งกลางแนวนอน
+    paddingBottom: 20, // เพิ่มพื้นที่ด้านล่าง
+  },
+  profileCardIntro: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#b0b0b0",
+    padding: 10,
+    borderRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 6,
+    width: 350,
+    height: 130,
+  },
+  profileIcon: {
+    width: 60,
+    height: 60,
+    marginHorizontal: 5,
+    borderRadius: 50,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  IntroContainer: {
+    width: "95%",
+    marginLeft: 4,
+    marginTop: 5,
+    backgroundColor: "#ffffff",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  detailTextIntro: {
+    fontSize: 14,
+    color: "#000",
+    padding: 2,
+  },
+  TextIntro: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  detailButtonIntro: {
+    width: "80%",
+    marginLeft: 18,
+    marginTop: 9,
+    backgroundColor: "#ececec",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 25,
+    alignItems: "center",
+  },
+  detailsName: {
+    width: "85%",
+    marginLeft: 10,
+    marginTop: 5,
+    backgroundColor: "#ffffff",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginVertical: 2,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  profileName: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  detailsAge: {
+    width: "85%",
+    marginLeft: 10,
+    marginTop: 5,
+    backgroundColor: "#ffffff",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginVertical: 2,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  profileAge: {
+    fontSize: 14,
+    color: "#555",
+  },
 });
