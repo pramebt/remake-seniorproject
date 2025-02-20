@@ -208,13 +208,14 @@ export const HomeSP: FC = () => {
     <View style={styles.container}>
       {/* Top Section */}
       <View style={styles.topSection}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
           <View style={styles.roomInfo}>
-            <ScrollView
-              style={styles.ScrollView}
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-            >
+          <ScrollView
+            horizontal={true} // เปิดการเลื่อนแนวนอน
+            style={styles.ScrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsHorizontalScrollIndicator={false}
+          >
               {rooms.length === 0 ? (
                 <View style={styles.profileCardIntro}>
                   <Image
@@ -524,19 +525,28 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 6,
-    width: 330, // ใช้ความกว้างแบบยืดหยุ่น
+    width: 100, // ใช้ความกว้างแบบยืดหยุ่น
     marginTop: 15,
     height: 120,
+    marginHorizontal: 15,
   },
   ScrollView: {
-    flex: 1, // ใช้พื้นที่ทั้งหมด
-    width: "100%", // ให้เต็มความกว้างของหน้าจอ
+    flex: 1,
+    width: "100%",
     borderWidth: 2,
     borderRadius: 20,
+    height:120,
+    marginBottom: 10,
   },
   scrollContent: {
-    alignItems: "center", // จัดเนื้อหาใน ScrollView ให้อยู่กึ่งกลางแนวนอน
-    paddingBottom: 20, // เพิ่มพื้นที่ด้านล่าง
+    flexDirection: "row", // เรียงแนวนอน
+    alignItems: "center", // จัดให้อยู่ตรงกลางแนวตั้ง
+    justifyContent: "flex-start", // ให้การ์ดเริ่มจากซ้ายไปขวา
+    paddingHorizontal: 15, // เพิ่ม padding ซ้าย-ขวา
+    height: "100%", // ให้ ScrollView กินพื้นที่แนวตั้งทั้งหมด
+   
+    justifyContent: "space-evenly",
+    
   },
   profileCardIntro: {
     flexDirection: "row",
@@ -592,8 +602,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   detailsName: {
-    width: "85%",
-    marginLeft: 10,
+    width: "auto",
+    
     marginTop: 5,
     backgroundColor: "#ffffff",
     paddingVertical: 4,
