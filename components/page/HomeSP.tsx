@@ -545,8 +545,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15, // เพิ่ม padding ซ้าย-ขวา
     height: "100%", // ให้ ScrollView กินพื้นที่แนวตั้งทั้งหมด
    
-    justifyContent: "space-evenly",
-    
   },
   profileCardIntro: {
     flexDirection: "row",
