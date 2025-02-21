@@ -162,41 +162,10 @@ export const HomeSP: FC = () => {
   };
 
   const [showIcons, setShowIcons] = useState(false); // สถานะการโชว์ไอคอน
-  const translation1 = useRef(new Animated.Value(0)).current; // ไอคอนที่สอง
-  const translation2 = useRef(new Animated.Value(0)).current; // ไอคอนที่สาม
   const rotation = useRef(new Animated.Value(0)).current;
 
   const handlePress = () => {
-    if (showIcons) {
-      // ซ่อนไอคอนและหมุนกลับ
-      Animated.parallel([
-        Animated.timing(rotation, {
-          toValue: 0, // หมุนกลับ
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(translation1, {
-          toValue: 0, // เลื่อนกลับ
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start(() => setShowIcons(false));
-    } else {
-      // แสดงไอคอนและหมุน 45 องศา
-      setShowIcons(true);
-      Animated.parallel([
-        Animated.timing(rotation, {
-          toValue: 1, // หมุน 45 องศา
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(translation1, {
-          toValue: 80, // เลื่อนไปตำแหน่งที่ 1
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
+    setShowIcons((prev) => !prev);
   };
 
   const rotateInterpolation = rotation.interpolate({
@@ -272,36 +241,18 @@ export const HomeSP: FC = () => {
         </ScrollView>
       </View>
       <View style={styles.addContainer}>
-        {/* ไอคอนแรก */}
-        <TouchableOpacity style={styles.addButton} onPress={handlePress}>
-          <Animated.View
-            style={[
-              styles.starIcon,
-              { transform: [{ rotate: rotateInterpolation }], zIndex: 2 },
-            ]}
-          >
-            <View style={[styles.starArm, styles.vertical]} />
-            <View style={[styles.starArm, styles.horizontal]} />
-          </Animated.View>
-        </TouchableOpacity>
+        
 
         {/* ไอคอนที่ 2 */}
-        {showIcons && (
-          <Animated.View
-            style={[
-              styles.animatedButton,
-              {
-                transform: [{ translateX: translation1 }],
-                position: "absolute",
-                zIndex: 1,
-              },
-            ]}
+       
+          <View
+           
           >
             <Pressable style={styles.addButton} onPress={whenGotoAddroom}>
-              {/* <Image source={require("../../assets/icons/add.png")} style={styles.icon} /> */}
+              <Image source={require("../../assets/icons/add.png")} style={styles.icon} /> 
             </Pressable>
-          </Animated.View>
-        )}
+          </View>
+        
       </View>
 
       {/* Middle Section */}
@@ -363,17 +314,15 @@ const styles = StyleSheet.create({
   roomInfo: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    padding: 10,
     borderRadius: 30,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 6,
-    width: "105%",
-    height: 130,
-    marginLeft: 5,
+    width: "100%",
+    height: "100%",
+    borderWidth: 1,
   },
   icon: {
     width: 50,
@@ -388,13 +337,16 @@ const styles = StyleSheet.create({
     color: "#555",
   },
   addContainer: {
-    flexDirection: "row",
+    width: "100%",
+    paddingHorizontal:20,
+
+  
   },
   addButton: {
     backgroundColor: "#FFF",
-    marginLeft: 20,
+    
     borderRadius: 30, // half width,height for cycle
-    width: 62,
+    width: "100%",
     height: 62,
     justifyContent: "center",
     alignItems: "center",
@@ -409,29 +361,7 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
   },
-  animatedButton: {
-    position: "absolute", // ช่วยจัดตำแหน่ง
-  },
-  starIcon: {
-    position: "relative",
-    width: 50, // ขนาดของดาว
-    height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  starArm: {
-    position: "absolute",
-    backgroundColor: "#8DD9BD",
-    borderRadius: 2,
-  },
-  vertical: {
-    width: 7, // ความกว้างของแฉก
-    height: 30, // ความยาวของแฉก
-  },
-  horizontal: {
-    width: 30, // ความยาวของแฉก
-    height: 7, // ความกว้างของแฉก
-  },
+  
   //----------------------------------------------------------------
 
   middleSection: {
@@ -515,7 +445,6 @@ const styles = StyleSheet.create({
   },
   //------------------------------------------------------------------
   CardRoom: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center", // จัดเนื้อหาภายในการ์ดให้อยู่กึ่งกลาง
     padding: 10,
@@ -526,23 +455,23 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 6,
     width: 100, // ใช้ความกว้างแบบยืดหยุ่น
-    marginTop: 15,
-    height: 120,
+    
+    height: 132,
     marginHorizontal: 15,
   },
   ScrollView: {
     flex: 1,
     width: "100%",
-    borderWidth: 2,
+    // borderWidth: 2,
     borderRadius: 20,
-    height:120,
-    marginBottom: 10,
+    height:"100%",
+    
+    
   },
   scrollContent: {
     flexDirection: "row", // เรียงแนวนอน
     alignItems: "center", // จัดให้อยู่ตรงกลางแนวตั้ง
-    justifyContent: "flex-start", // ให้การ์ดเริ่มจากซ้ายไปขวา
-    paddingHorizontal: 15, // เพิ่ม padding ซ้าย-ขวา
+    paddingVertical:10,
     height: "100%", // ให้ ScrollView กินพื้นที่แนวตั้งทั้งหมด
    
   },

@@ -24,6 +24,8 @@ import {
   sendExpoPushTokenToBackend,
 } from "../../app/usePushNotifications";
 
+import { LoadingScreenBaby } from "../LoadingScreen";
+
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // กำหนด interface สำหรับข้อมูลเด็ก
@@ -87,6 +89,7 @@ export const HomePR: FC = () => {
   const [assessmentDetails, setAssessmentDetails] = useState<
     AssessmentDetails[]
   >([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const { expoPushToken } = usePushNotifications();
 
@@ -117,6 +120,7 @@ export const HomePR: FC = () => {
             }
           }
 
+          setLoading(true);
           const response = await fetch(
             `https://senior-test-deploy-production-1362.up.railway.app/api/childs/get-child-data?parent_id=${parent_id}`,
             {
@@ -129,6 +133,7 @@ export const HomePR: FC = () => {
 
           if (response.ok) {
             const jsonResponse = await response.json();
+            console.log("Fetch child data successfully");
 
             if (jsonResponse.children) {
               const updatedChildren: Child[] = jsonResponse.children.map(
@@ -142,7 +147,11 @@ export const HomePR: FC = () => {
                   };
                 }
               );
-              setChildren(updatedChildren);
+              // setChildren(updatedChildren);
+              setTimeout(() => {
+                setChildren(updatedChildren);
+                setLoading(false);
+              }, 100); // set delay
 
               const allAssessments = jsonResponse.children.map(
                 (child: any) => child.assessments || []
@@ -153,20 +162,28 @@ export const HomePR: FC = () => {
               console.log("No children found.");
               setChildren([]);
               setAssessmentDetails([]);
+              setLoading(false);
             }
           } else {
             console.error(
               `Error fetching data: ${response.status} ${response.statusText}`
             );
+            setLoading(false);
           }
         } catch (error) {
           console.error("Error fetching child data:", error);
+          setLoading(false);
         }
       };
 
       fetchChildDataForParent();
     }, [expoPushToken])
   );
+
+  // === ( LoadingScreen ) ===
+  if (loading) {
+    return <LoadingScreenBaby />;
+  }
 
   // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // renderAssessmentState
@@ -307,22 +324,28 @@ export const HomePR: FC = () => {
                         : styles.profileCardGirl
                     }
                   >
-                    <Pressable onPress={() => whenGotoAssessment(child)}>
-                      <Image
-                        source={
-                          child.childPic
-                            ? { uri: child.childPic }
-                            : require("../../assets/icons/User_Icon.png")
-                        }
-                        style={styles.profileIcon}
-                      />
-                    </Pressable>
-                    <View style={styles.profileInfo}>
-                      <View style={styles.detailsName}>
-                        <Text style={styles.profileName}>{child.nickName}</Text>
-                      </View>
-                      <View style={styles.detailsAge}>
-                        <Text style={styles.profileAge}>{child.age}</Text>
+                    <View style={styles.profileCard}>
+                      <View style={styles.profileInfo}>
+                        <Pressable onPress={() => whenGotoAssessment(child)}>
+                          <Image
+                            source={
+                              child.childPic
+                                ? { uri: child.childPic }
+                                : require("../../assets/icons/User_Icon.png")
+                            }
+                            style={styles.profileIcon}
+                          />
+                        </Pressable>
+                        <View style={styles.childInfo}>
+                          <View style={styles.detailsName}>
+                            <Text style={styles.profileName}>
+                              {child.nickName}
+                            </Text>
+                          </View>
+                          <View style={styles.detailsAge}>
+                            <Text style={styles.profileAge}>{child.age}</Text>
+                          </View>
+                        </View>
                       </View>
 
                       {/* render assessmentsState */}
@@ -369,7 +392,7 @@ const styles = StyleSheet.create({
     // resizeMode: "cover",
     // height: 850,
     height: "100%",
-    borderWidth: 2,
+    // borderWidth: 2,
   },
   ScrollView: {
     width: "100%",
@@ -403,17 +426,12 @@ const styles = StyleSheet.create({
 
   midSection: {
     width: "90%",
-    height: 570,
+    height: "70%",
     marginTop: 15,
     marginBottom: 15,
     flexDirection: "row",
-    // alignItems: "center",
+    alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#808080", // กำหนดสีของเงาเป็นสีดำ (สีในรูปแบบ Hex)
-    shadowOffset: { width: 0, height: 4 }, // กำหนดการเลื่อนของเงาในแนวนอน (width) และแนวตั้ง (height)
-    shadowOpacity: 0.3, // กำหนดความทึบของเงา (0 คือโปร่งใส, 1 คือทึบเต็มที่)
-    shadowRadius: 2, // กำหนดรัศมีการกระจายของเงา
-    elevation: 6, // กำหนดระดับความสูงของเงา (ใช้ใน Android)
     // borderWidth: 2,
   },
   profileCardBoy: {
@@ -435,19 +453,23 @@ const styles = StyleSheet.create({
     width: 350,
     height: "auto",
     marginTop: 15,
-    // borderWidth: 2,
   },
 
   profileIcon: {
     width: 61,
     height: 61,
-    // marginRight: 10,
     marginTop: 10,
     borderRadius: 50,
   },
   profileInfo: {
-    flex: 1,
+    flexDirection: "row",
     // borderWidth: 2,
+  },
+  profileCard: {
+    flex: 1,
+  },
+  childInfo: {
+    flex: 1,
   },
   profileName: {
     fontSize: 16,
@@ -509,25 +531,20 @@ const styles = StyleSheet.create({
 
   stateContainer: {
     flexDirection: "row",
-    flexWrap: "wrap", // Add this line to wrap content if it overflows
-    justifyContent: "center",
-    width: 400,
-    height: "auto",
-    right: 80,
-    // borderWidth: 2,
+    flex: 2,
+    justifyContent: "space-between", // Add space between elements
+    alignItems: "center",
+    width: "100%",
+    height: "40%",
   },
   assessmentsState: {
     backgroundColor: "#fff",
-    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between", // Add space between elements
-    width: 96,
-    height: 50,
-    borderRadius: 30,
-    marginTop: 15,
-    padding: 8,
-    marginRight: 5, // Add some margin to the right for spacing
-    // borderWidth: 1,
+    justifyContent: "center",
+    width: 60,
+    height: "auto",
+    borderRadius: 15,
+    borderWidth: 1,
   },
   textState: {
     fontSize: 16,
@@ -535,14 +552,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   stateIcon: {
-    width: 37,
-    height: 37,
-    borderRadius: 30,
+    width: 50,
+    height: 40,
+    borderRadius: 10,
   },
   stateNumber: {
-    width: 37,
-    height: 37,
-    borderRadius: 30,
+    width: 50,
+    height: 40,
+    borderRadius: 10,
     backgroundColor: "#FF6565",
     justifyContent: "center",
     // borderWidth: 1,

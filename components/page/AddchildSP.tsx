@@ -200,10 +200,10 @@ export const AddchildSP: FC = () => {
       if (resp.ok) {
         Alert.alert("สำเร็จ", "เพิ่มข้อมูลเด็กสำเร็จ");
         // await AsyncStorage.setItem("ProfileChild", jsonResp.childPic);
-        navigation.navigate("mainSP");
+        navigation.navigate("mainPR");
       } else if (resp.status === 409) {
         Alert.alert("ไม่สำเร็จ", "มีเด็กในระบบอยู่แล้ว");
-        navigation.navigate("mainSP");
+        navigation.navigate("mainPR");
       } else {
         const errorResponse = await resp.text();
         console.error("Error response from server:", errorResponse);
