@@ -92,8 +92,8 @@ export const ChooseChildSP: FC = () => {
     }, [])
   );
 
-  const whenGotoAddChildSP = () => {
-    navigation.navigate("addchildSP");
+  const whenGotoAddChildSP = (rooms: Room) => {
+    navigation.navigate("addchildSP",{rooms});
   };
 
   const whenGotoDetail = (id: number) => {
@@ -146,7 +146,7 @@ export const ChooseChildSP: FC = () => {
                 </View>
                 <Pressable
                   style={styles.detailButtonIntro}
-                  onPress={whenGotoAddChildSP}
+                  onPress={() => whenGotoAddChildSP(rooms)}
                 >
                   <Text style={styles.detailTextIntro}>
                     เพิ่มข้อมูลเด็กที่นี่

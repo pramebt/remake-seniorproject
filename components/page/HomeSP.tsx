@@ -23,6 +23,9 @@ import {
   sendExpoPushTokenToBackend,
 } from "../../app/usePushNotifications";
 
+import { LoadingScreenBaby } from "../LoadingScreen";
+import { LinearGradient } from "expo-linear-gradient";
+
 export interface Child {
   child_id: number;
   childName: string;
@@ -67,7 +70,7 @@ export const calculateAge = (
 
 export const HomeSP: FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
-
+  const [loading, setLoading] = useState<boolean>(true);
   const [rooms, setRoom] = useState<Room[]>([]);
 
   const { expoPushToken } = usePushNotifications();
@@ -88,7 +91,7 @@ export const HomeSP: FC = () => {
             console.error("token is missing.");
             return;
           }
-
+          setLoading(true);
           if (expoPushToken) {
             const user_id = parseInt(supervisor_id, 10);
             if (!isNaN(user_id)) {
@@ -123,12 +126,13 @@ export const HomeSP: FC = () => {
                     };
                   }
                 );
-
-                setRoom(updatedRoom); // setting age child
-                
+                setTimeout(() => {
+                  setRoom(updatedRoom);
+                  setLoading(false);
+                }, 100); // set delay
               } else {
                 setRoom([]);
-                
+                setLoading(false);
               }
             } else {
               console.error(
@@ -136,6 +140,7 @@ export const HomeSP: FC = () => {
                 response.status,
                 response.statusText
               );
+              setLoading(false);
             }
           }
         } catch (error) {
@@ -144,8 +149,9 @@ export const HomeSP: FC = () => {
       };
 
       fetchChildData();
-    }, [])
+    }, [expoPushToken])
   );
+
   const whenGotoAddroom = () => {
     navigation.navigate("addroom");
   };
@@ -173,18 +179,23 @@ export const HomeSP: FC = () => {
     outputRange: ["0deg", "45deg"], // หมุน 45 องศา
   });
 
+  if (loading) {
+    return <LoadingScreenBaby />;
+  }
+
+  
   return (
     <View style={styles.container}>
       {/* Top Section */}
       <View style={styles.topSection}>
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
           <View style={styles.roomInfo}>
-          <ScrollView
-            horizontal={true} // เปิดการเลื่อนแนวนอน
-            style={styles.ScrollView}
-            contentContainerStyle={styles.scrollContent}
-            showsHorizontalScrollIndicator={false}
-          >
+            <ScrollView
+              horizontal={true} // เปิดการเลื่อนแนวนอน
+              style={styles.ScrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsHorizontalScrollIndicator={false}
+            >
               {rooms.length === 0 ? (
                 <View style={styles.profileCardIntro}>
                   <Image
@@ -241,28 +252,41 @@ export const HomeSP: FC = () => {
         </ScrollView>
       </View>
       <View style={styles.addContainer}>
-        
-
         {/* ไอคอนที่ 2 */}
-       
-          <View
-           
+        <View>
+          <Pressable onPress={whenGotoAddroom}>
+          <LinearGradient
+            colors={["#F5E5FF", "#E1D7FF", "#CEC9FF"]}
+            locations={[0, 0.5, 1]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.addButton}
           >
-            <Pressable style={styles.addButton} onPress={whenGotoAddroom}>
-              <Image source={require("../../assets/icons/add.png")} style={styles.icon} /> 
-            </Pressable>
-          </View>
-        
+            <Image
+              source={require("../../assets/icons/group.png")}
+              style={styles.icon}
+            />
+             </LinearGradient>
+          </Pressable>
+        </View>
       </View>
 
       {/* Middle Section */}
       <View style={styles.middleSection}>
-        <Pressable style={styles.evaluateButton} onPress={whenGotoChooseRoom}>
-          <Image
-            source={require("../../assets/icons/assessment.png")}
-            style={styles.asessmentIcon}
-          />
-          <Text style={styles.evaluateText}>เริ่มการประเมิน</Text>
+        <Pressable onPress={whenGotoChooseRoom}>
+          <LinearGradient
+            colors={["#FFFFFF", "#E6FFF0", "#DCF5F0"]}
+            locations={[0, 0.5, 1]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.evaluateButton}
+          >
+            <Image
+              source={require("../../assets/icons/assessment.png")}
+              style={styles.asessmentIcon}
+            />
+            <Text style={styles.evaluateText}>เริ่มการประเมิน</Text>
+          </LinearGradient>
         </Pressable>
       </View>
 
@@ -327,6 +351,7 @@ const styles = StyleSheet.create({
   icon: {
     width: 50,
     height: 50,
+    marginBottom: 10,
   },
   cardText: {
     fontSize: 14,
@@ -338,13 +363,10 @@ const styles = StyleSheet.create({
   },
   addContainer: {
     width: "100%",
-    paddingHorizontal:20,
-
-  
+    paddingHorizontal: 20,
   },
   addButton: {
-    backgroundColor: "#FFF",
-    
+    backgroundColor: "#000",
     borderRadius: 30, // half width,height for cycle
     width: "100%",
     height: 62,
@@ -357,11 +379,8 @@ const styles = StyleSheet.create({
     elevation: 10,
     bottom: 10,
   },
-  addIcon: {
-    width: 45,
-    height: 45,
-  },
   
+
   //----------------------------------------------------------------
 
   middleSection: {
@@ -373,7 +392,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   evaluateButton: {
-    backgroundColor: "#ccfff5",
     flexDirection: "row",
     padding: 15,
     borderRadius: 25,
@@ -455,7 +473,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 6,
     width: 100, // ใช้ความกว้างแบบยืดหยุ่น
-    
+
     height: 132,
     marginHorizontal: 15,
   },
@@ -464,16 +482,13 @@ const styles = StyleSheet.create({
     width: "100%",
     // borderWidth: 2,
     borderRadius: 20,
-    height:"100%",
-    
-    
+    height: "100%",
   },
   scrollContent: {
     flexDirection: "row", // เรียงแนวนอน
     alignItems: "center", // จัดให้อยู่ตรงกลางแนวตั้ง
-    paddingVertical:10,
+    paddingVertical: 10,
     height: "100%", // ให้ ScrollView กินพื้นที่แนวตั้งทั้งหมด
-   
   },
   profileCardIntro: {
     flexDirection: "row",
@@ -530,7 +545,7 @@ const styles = StyleSheet.create({
   },
   detailsName: {
     width: "auto",
-    
+
     marginTop: 5,
     backgroundColor: "#ffffff",
     paddingVertical: 4,

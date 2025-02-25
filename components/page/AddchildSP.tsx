@@ -14,11 +14,12 @@ import {
   ImageBackground,
   Keyboard,
   Modal,
+
 } from "react-native";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { useNavigation, NavigationProp, RouteProp,useRoute,} from "@react-navigation/native";
 import { format } from "date-fns";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
@@ -27,6 +28,11 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 // import DatePicker from "react-native-date-picker";
 import { LinearGradient } from "expo-linear-gradient";
 
+import { Child, calculateAge, Room } from "../../components/page/HomeSP";
+type ChooseChildSPRountprop = RouteProp<
+  { assessment: { rooms: Room } },
+  "assessment"
+>;
 // Form validation schema
 const AddChildSchema = z.object({
   firstName: z.string().min(4, "กรุณาระบุชื่อเด็ก").max(150),
@@ -58,6 +64,8 @@ export const AddchildSP: FC = () => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const route = useRoute<ChooseChildSPRountprop>();
+  const { rooms } = route.params;
 
   // ฟังก์ชันการจัดการการยืนยันวันที่
   const handleConfirm = (selectedDate: Date) => {
@@ -157,7 +165,9 @@ export const AddchildSP: FC = () => {
       if (supervisor_id) {
         data.append("supervisor_id", supervisor_id);
       }
-
+      if (rooms.rooms_id) {
+        data.append("rooms_id", String(rooms.rooms_id));
+      }
       // ตรวจสอบว่ามีรูปภาพหรือไม่
       if (childPic) {
         try {
@@ -198,12 +208,12 @@ export const AddchildSP: FC = () => {
       console.log("API Response:", jsonResp);
 
       if (resp.ok) {
-        Alert.alert("สำเร็จ", "เพิ่มข้อมูลเด็กสำเร็จ");
+        Alert.alert("สำเร็จ", "เพิ่มข้อมูลเข้าระบบแล้วรอการยืนยัน");
         // await AsyncStorage.setItem("ProfileChild", jsonResp.childPic);
-        navigation.navigate("mainPR");
+        navigation.navigate("mainSP");
       } else if (resp.status === 409) {
         Alert.alert("ไม่สำเร็จ", "มีเด็กในระบบอยู่แล้ว");
-        navigation.navigate("mainPR");
+        navigation.navigate("mainSP");
       } else {
         const errorResponse = await resp.text();
         console.error("Error response from server:", errorResponse);
@@ -356,7 +366,7 @@ export const AddchildSP: FC = () => {
                 </Text>
               </TouchableOpacity>
 
-              {showDatePicker && (
+              {Platform.OS === "ios" && showDatePicker && (
                 <Modal
                   transparent={true}
                   animationType="slide"
@@ -368,29 +378,28 @@ export const AddchildSP: FC = () => {
                         value={date}
                         mode="date"
                         display="spinner"
-                        onChange={(event, selectedDate) => {
-                          if (selectedDate) {
-                            setDate(selectedDate);
+                        onChange={(event, newDate) => {
+                          if (newDate) {
+                            setDate(newDate);
+                            handleConfirm(newDate);
                           }
                         }}
-                        textColor="black" // Text color inside the date picker
-                        themeVariant="light" // Theme variant (light or dark)
+                        textColor="black"
+                        themeVariant="light"
                         locale="th"
                       />
                       <View style={styles.buttonsContainer}>
-                        {/* Cancel Button */}
                         <TouchableOpacity
                           style={styles.cancelButton}
-                          onPress={() => setShowDatePicker(false)} // Close the date picker
+                          onPress={() => setShowDatePicker(false)}
                         >
                           <Text style={styles.buttonText}>ยกเลิก</Text>
                         </TouchableOpacity>
-                        {/* Confirm Button */}
                         <TouchableOpacity
                           style={styles.confirmButton}
                           onPress={() => {
-                            handleConfirm(date); // Process the selected date
-                            setShowDatePicker(false); // Close the date picker
+                            handleConfirm(date);
+                            setShowDatePicker(false);
                           }}
                         >
                           <Text style={styles.buttonText}>ยืนยัน</Text>
@@ -399,6 +408,20 @@ export const AddchildSP: FC = () => {
                     </View>
                   </View>
                 </Modal>
+              )}
+
+              {Platform.OS === "android" && showDatePicker && (
+                <DateTimePicker
+                  value={date}
+                  mode="date"
+                  display="calendar" // ใช้ calendar ใน Android แทน spinner
+                  onChange={(event, newDate) => {
+                    setShowDatePicker(false);
+                    if (newDate) {
+                      handleConfirm(newDate);
+                    }
+                  }}
+                />
               )}
 
               {errors.birthday && (
