@@ -7,6 +7,7 @@ import {
   Image,
   Pressable,
   ImageBackground,
+  ScrollView
 } from "react-native";
 import {
   useNavigation,
@@ -19,6 +20,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { Child } from "../page/HomePR";
 import { AssessmentDetails } from "../assessment/GM";
+import { LinearGradient } from "expo-linear-gradient";
 
 type ChildRouteProp = RouteProp<{ assessment: { child: Child } }, "assessment">;
 
@@ -190,12 +192,149 @@ export const Training: FC = () => {
   }
 
   const imageMap: ImageMap = {
-    "GM/gm-1": require("../../assets/assessment/GM/gm-3.png"),
-    "GM/gm-dv-1": require("../../assets/assessment/GM/devices/gm-dv-1.png"),
-    "GM/gm-tr-1": require("../../assets/assessment/GM/trainings/gm-tr-2.png"),
-    "GM/gm-2": require("../../assets/assessment/GM/gm-4.png"),
-    "GM/gm-dv-2": require("../../assets/assessment/GM/devices/gm-dv-2.png"),
-    "GM/gm-tr-2": require("../../assets/assessment/GM/trainings/gm-tr-2.png"),
+    "GM1.jpg": require("../../assets/assessment/GM/GM1.jpg"),
+    "GM2.jpg": require("../../assets/assessment/GM/GM2.jpg"),
+    "GM3.jpg": require("../../assets/assessment/GM/GM3.jpg"),
+    "GM4.jpeg": require("../../assets/assessment/GM/GM4.jpeg"),
+    "GM5.jpg": require("../../assets/assessment/GM/GM5.jpg"),
+    "GM6.jpg": require("../../assets/assessment/GM/GM6.jpg"),
+    "GM7.jpg": require("../../assets/assessment/GM/GM7.jpg"),
+    "GM8.jpg": require("../../assets/assessment/GM/GM8.jpg"),
+    "GM9.jpg": require("../../assets/assessment/GM/GM9.jpg"),
+    "GM10.jpg": require("../../assets/assessment/GM/GM10.jpg"),
+    "GM11.jpg": require("../../assets/assessment/GM/GM11.jpg"),
+    "GM12.jpg": require("../../assets/assessment/GM/GM12.jpg"),
+    "GM13.jpg": require("../../assets/assessment/GM/GM13.jpg"),
+    "GM14.jpg": require("../../assets/assessment/GM/GM14.jpg"),
+    "GM15.jpg": require("../../assets/assessment/GM/GM15.jpg"),
+    "GM16.jpg": require("../../assets/assessment/GM/GM16.jpg"),
+    "GM17.jpg": require("../../assets/assessment/GM/GM17.jpg"),
+    "GM18.jpg": require("../../assets/assessment/GM/GM18.jpg"),
+    "GM19.jpg": require("../../assets/assessment/GM/GM19.jpg"),
+    "GM20.jpg": require("../../assets/assessment/GM/GM20.jpg"),
+    "GM21.jpg": require("../../assets/assessment/GM/GM21.jpg"),
+    "GM22.jpg": require("../../assets/assessment/GM/GM22.jpg"),
+    "GM23.jpg": require("../../assets/assessment/GM/GM23.jpg"),
+    "GM24.jpg": require("../../assets/assessment/GM/GM24.jpg"),
+    "GM25.jpg": require("../../assets/assessment/GM/GM25.jpg"),
+    "GM26.jpg": require("../../assets/assessment/GM/GM26.jpg"),
+    "GM27.jpg": require("../../assets/assessment/GM/GM27.jpg"),
+    "GM28.jpg": require("../../assets/assessment/GM/GM28.jpg"), 
+
+    "FM1.jpg": require("../../assets/assessment/FM/FM1.jpg"),
+    "FM2.jpg": require("../../assets/assessment/FM/FM2.jpg"),
+    "FM3.jpg": require("../../assets/assessment/FM/FM3.jpg"),
+    "FM4.jpg": require("../../assets/assessment/FM/FM4.jpg"),
+    "FM5.jpg": require("../../assets/assessment/FM/FM5.jpg"),
+    "FM6.jpg": require("../../assets/assessment/FM/FM6.jpg"),
+    "FM7.jpg": require("../../assets/assessment/FM/FM7.jpg"),
+    "FM8.jpg": require("../../assets/assessment/FM/FM8.jpg"),
+    "FM9.jpg": require("../../assets/assessment/FM/FM9.jpg"),
+    "FM10.jpg": require("../../assets/assessment/FM/FM10.jpg"),
+    "FM11.jpg": require("../../assets/assessment/FM/FM11.jpg"),
+    "FM12.jpg": require("../../assets/assessment/FM/FM12.jpg"),
+    "FM13.jpg": require("../../assets/assessment/FM/FM13.jpg"),
+    "FM14.jpg": require("../../assets/assessment/FM/FM14.jpg"),
+    "FM15.jpg": require("../../assets/assessment/FM/FM15.jpg"),
+    "FM16.jpg": require("../../assets/assessment/FM/FM16.jpg"),
+    "FM17.jpg": require("../../assets/assessment/FM/FM17.jpg"),
+    "FM18.jpg": require("../../assets/assessment/FM/FM18.jpg"),
+    "FM19.jpg": require("../../assets/assessment/FM/FM19.jpg"),
+    "FM20.jpg": require("../../assets/assessment/FM/FM20.jpg"),
+    "FM21.jpg": require("../../assets/assessment/FM/FM21.jpg"),
+    "FM22.jpg": require("../../assets/assessment/FM/FM22.jpg"),
+    "FM23.jpg": require("../../assets/assessment/FM/FM23.jpg"),
+    "FM24.jpg": require("../../assets/assessment/FM/FM24.jpg"),
+    "FM25.jpg": require("../../assets/assessment/FM/FM25.jpg"),
+    "FM26.jpg": require("../../assets/assessment/FM/FM26.jpg"),
+    "FM27.jpg": require("../../assets/assessment/FM/FM27.jpg"),
+    "FM28.jpg": require("../../assets/assessment/FM/FM28.jpg"),
+    "FM29.jpg": require("../../assets/assessment/FM/FM29.jpg"),
+
+    "RL1.jpg": require("../../assets/assessment/RL/RL1.jpg"),
+    "RL2.jpg": require("../../assets/assessment/RL/RL2.jpg"),
+    "RL3.jpg": require("../../assets/assessment/RL/RL3.jpg"),
+    "RL4.jpg": require("../../assets/assessment/RL/RL4.jpg"),
+    "RL5.jpg": require("../../assets/assessment/RL/RL5.jpg"),
+    "RL6.jpg": require("../../assets/assessment/RL/RL6.jpg"),
+    "RL7.jpg": require("../../assets/assessment/RL/RL7.jpg"),
+    "RL8.jpg": require("../../assets/assessment/RL/RL8.jpg"),
+    "RL9.jpg": require("../../assets/assessment/RL/RL9.jpg"),
+    "RL10.jpg": require("../../assets/assessment/RL/RL10.jpg"),
+    "RL11.jpg": require("../../assets/assessment/RL/RL11.jpg"),
+    "RL12.jpg": require("../../assets/assessment/RL/RL12.jpg"),
+    "RL13.jpg": require("../../assets/assessment/RL/RL13.jpg"),
+    "RL14.jpg": require("../../assets/assessment/RL/RL14.jpg"),
+    "RL15.jpg": require("../../assets/assessment/RL/RL15.jpg"),
+    "RL16.jpg": require("../../assets/assessment/RL/RL16.jpg"),
+    "RL17.jpg": require("../../assets/assessment/RL/RL17.jpg"),
+    "RL18.jpg": require("../../assets/assessment/RL/RL18.jpg"),
+    "RL19.jpg": require("../../assets/assessment/RL/RL19.jpg"),
+    "RL20.jpg": require("../../assets/assessment/RL/RL20.jpg"),
+    "RL21.jpg": require("../../assets/assessment/RL/RL21.jpg"),
+    "RL22.jpg": require("../../assets/assessment/RL/RL22.jpg"),
+    "RL23.jpg": require("../../assets/assessment/RL/RL23.jpg"),
+    "RL24.jpg": require("../../assets/assessment/RL/RL24.jpg"),
+    "RL25.jpg": require("../../assets/assessment/RL/RL25.jpg"),
+    "RL26.jpg": require("../../assets/assessment/RL/RL26.jpg"),
+    "RL27.jpg": require("../../assets/assessment/RL/RL27.jpg"),
+    "RL28.jpg": require("../../assets/assessment/RL/RL28.jpg"),
+
+    "EL1.jpg": require("../../assets/assessment/EL/EL1.jpg"),
+    "EL2.jpg": require("../../assets/assessment/EL/EL2.jpg"),
+    "EL3.jpg": require("../../assets/assessment/EL/EL3.jpeg"),
+    "EL4.jpg": require("../../assets/assessment/EL/EL4.jpeg"),
+    "EL5.jpg": require("../../assets/assessment/EL/EL5.jpg"),
+    "EL6.jpg": require("../../assets/assessment/EL/EL6.jpg"),
+    "EL7.jpg": require("../../assets/assessment/EL/EL7.jpg"),
+    "EL8.jpg": require("../../assets/assessment/EL/EL8.jpg"),
+    "EL9.jpg": require("../../assets/assessment/EL/EL9.jpg"),
+    "EL10.jpg": require("../../assets/assessment/EL/EL10.jpg"),
+    "EL11.jpg": require("../../assets/assessment/EL/EL11.jpg"),
+    "EL12.jpg": require("../../assets/assessment/EL/EL12.jpg"),
+    "EL13.jpg": require("../../assets/assessment/EL/EL13.jpg"),
+    "EL14.jpg": require("../../assets/assessment/EL/EL14.jpg"),
+    "EL15.jpg": require("../../assets/assessment/EL/EL15.jpg"),
+    "EL16.jpg": require("../../assets/assessment/EL/EL16.jpg"),
+    "EL17.jpg": require("../../assets/assessment/EL/EL17.jpg"),
+    "EL18.jpg": require("../../assets/assessment/EL/EL18.jpg"),
+    "EL19.jpg": require("../../assets/assessment/EL/EL19.jpg"),
+    "EL20.jpg": require("../../assets/assessment/EL/EL20.jpg"),
+    "EL21.jpg": require("../../assets/assessment/EL/EL21.jpg"),
+    "EL22.jpg": require("../../assets/assessment/EL/EL22.jpg"),
+    "EL23.jpg": require("../../assets/assessment/EL/EL23.jpg"),
+    "EL24.jpg": require("../../assets/assessment/EL/EL24.jpg"),
+    "EL25.jpg": require("../../assets/assessment/EL/EL25.jpg"),
+    "EL26.jpg": require("../../assets/assessment/EL/EL26.jpg"),
+    "EL27.jpg": require("../../assets/assessment/EL/EL27.jpg"),
+
+    "PS1.jpg": require("../../assets/assessment/PS/PS1.jpg"),
+    "PS2.jpg": require("../../assets/assessment/PS/PS2.jpeg"),
+    "PS3.jpeg": require("../../assets/assessment/PS/PS3.jpeg"),
+    "PS4.jpg": require("../../assets/assessment/PS/PS4.jpg"),
+    "PS5.jpg": require("../../assets/assessment/PS/PS5.jpg"),
+    "PS6.jpg": require("../../assets/assessment/PS/PS6.jpg"),
+    "PS7.jpg": require("../../assets/assessment/PS/PS7.jpg"),
+    "PS8.jpg": require("../../assets/assessment/PS/PS8.jpg"),
+    "PS9.jpg": require("../../assets/assessment/PS/PS9.jpg"),
+    "PS10.jpg": require("../../assets/assessment/PS/PS10.jpg"),
+    "PS11.jpg": require("../../assets/assessment/PS/PS11.jpg"),
+    "PS12.jpg": require("../../assets/assessment/PS/PS12.jpg"),
+    "PS13.jpg": require("../../assets/assessment/PS/PS13.jpg"),
+    "PS14.jpg": require("../../assets/assessment/PS/PS14.jpg"),
+    "PS15.jpg": require("../../assets/assessment/PS/PS15.jpg"),
+    "PS16.jpg": require("../../assets/assessment/PS/PS16.jpg"),
+    "PS17.jpg": require("../../assets/assessment/PS/PS17.jpg"),
+    "PS18.jpg": require("../../assets/assessment/PS/PS18.jpg"),
+    "PS19.jpg": require("../../assets/assessment/PS/PS19.jpg"),
+    "PS20.jpg": require("../../assets/assessment/PS/PS20.jpg"),
+    "PS21.jpg": require("../../assets/assessment/PS/PS21.jpg"),
+    "PS22.jpg": require("../../assets/assessment/PS/PS22.jpg"),
+    "PS23.jpg": require("../../assets/assessment/PS/PS23.jpg"),
+    "PS24.jpg": require("../../assets/assessment/PS/PS24.jpg"),
+    "PS25.jpg": require("../../assets/assessment/PS/PS25.jpg"),
+    "PS26.jpg": require("../../assets/assessment/PS/PS26.jpg"),
+    "PS27.jpg": require("../../assets/assessment/PS/PS27.jpg"),
   };
 
   const getImageSource = (imagePath: string): any => {
@@ -214,13 +353,16 @@ export const Training: FC = () => {
     >
       {/* Top Section */}
       <View style={styles.topSection}>
-        <View
-          key={child.child_id}
-          style={
-            child.gender === "male"
-              ? styles.profileCardBoy
-              : styles.profileCardGirl
-          }
+       <LinearGradient
+            key={child.child_id}
+            colors={
+              child.gender === "male"
+                ? ["#fff", "#E7F6FF","#D6ECFD"]  // ไล่สีฟ้าสำหรับเด็กผู้ชาย
+                :["#fff", "#FFDEE4","#FFBED6"]  // ไล่สีชมพูสำหรับเด็กผู้หญิง
+            }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={child.gender === "male" ? styles.profileCardBoy : styles.profileCardGirl}
         >
           <Image source={{ uri: child.childPic }} style={styles.profileIcon} />
           <View style={styles.profileInfo}>
@@ -231,11 +373,13 @@ export const Training: FC = () => {
               <Text style={styles.profileAge}>{child.age}</Text>
             </View>
           </View>
-        </View>
+        </LinearGradient>
       </View>
 
       {/* Mid Section */}
       <View style={styles.midSection}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+      <View style={styles.containerSection}>
         {/* assessment header */}
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerText}>Gross Motor (GM)</Text>
@@ -315,6 +459,8 @@ export const Training: FC = () => {
           </>
         )}
       </View>
+      </ScrollView>
+      </View>
 
       {/* Bottom Section */}
       <View style={styles.bottomSection}>
@@ -346,23 +492,36 @@ const styles = StyleSheet.create({
     paddingTop: 55,
     // borderWidth: 1,
   },
+
   midSection: {
-    //flex: 1,
-    width: 350,
-    minHeight: "auto",
+    width: "90%",
+    height: "72%",
+    marginBottom: 15,
+    flexDirection: "row",
+    justifyContent: "center",
+    // borderWidth: 2,
+  },
+  containerSection: {
+    // flex: 1,
+    width: "95%",
+    height: "auto",
+    minHeight: 300,
+    //maxHeight:485,
     marginTop: 5,
+    marginHorizontal:8,
+    marginBottom:10,
     paddingBottom: 5,
-    //paddingVertical: 10,
-    borderRadius: 30,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 6,
+    borderRadius: 20,
+    shadowColor: "#c5c5c5",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
     backgroundColor: "#fff",
     // justifyContent: "center",
     alignItems: "center",
-    // borderWidth: 2,
+    overflow: "hidden", // Add this line to prevent overflow
+    //borderWidth: 2,
   },
   bottomSection: {
     flexDirection: "row",
@@ -379,30 +538,30 @@ const styles = StyleSheet.create({
 
   profileCardGirl: {
     flexDirection: "row",
-    width: 350,
     height: "auto",
     alignItems: "center",
     backgroundColor: "#ffd7e5",
     padding: 10,
-    borderRadius: 30,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 6,
+    borderRadius: 20,
+    width: "85%",
+    shadowColor: "#b5b5b5",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 5,
   },
   profileCardBoy: {
     flexDirection: "row",
-    width: 350,
     alignItems: "center",
     backgroundColor: "#c5e5fc",
     padding: 10,
-    borderRadius: 30,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 6,
+    borderRadius: 20,
+    width: "85%",
+    shadowColor: "#b5b5b5",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 5,
   },
   profileIcon: {
     width: 70,
@@ -469,6 +628,7 @@ const styles = StyleSheet.create({
     color: "#FFF",
     padding: 2,
   },
+  
   backIcon: {
     width: 35,
     height: 35,
@@ -499,7 +659,8 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 70,
     // height: 40,
-    borderRadius: 30,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     backgroundColor: "#5F5F5F",
     alignItems: "center", // แกน x
     // justifyContent: "center", // แกน y
@@ -541,7 +702,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#8DD9BD",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 25,
+    borderTopRightRadius: 0,
+    borderTopLeftRadius: 30,
+    borderBottomRightRadius: 0,
+    borderBottomLeftRadius: 30,
     width: 60,
     height: "100%",
   },
@@ -553,18 +717,21 @@ const styles = StyleSheet.create({
   assessmentTitleContainer: {
     flexDirection: "row",
     width: "70%",
+    height: "auto",
     alignItems: "center",
   },
   assessmentTitle: {
     fontSize: 14,
     fontWeight: "bold",
+    width: 220,
+    height: "auto",
     marginTop: 5,
     marginBottom: 5,
-    marginLeft: 10,
-    marginRight: 10,
+    marginLeft: "auto",
+    marginRight: "auto",
     textAlign: "center",
-    // borderWidth: 2,
-  },
+    //borderWidth: 2,
+    },
 
   // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -572,6 +739,7 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     resizeMode: "cover",
+    borderRadius:15,
     // borderWidth: 1,
   },
 
@@ -611,7 +779,7 @@ const styles = StyleSheet.create({
 
   assessmentHowto: {
     width: "90%",
-    height: 150,
+    height: "auto",
     paddingBottom: 10,
     paddingHorizontal: 10,
     marginVertical: 5,
@@ -646,7 +814,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: "#fff",
     alignItems: "center",
-    borderWidth: 1, // line
+    //borderWidth: 1, // line
   },
   headerResult: {
     fontSize: 16,
@@ -657,6 +825,7 @@ const styles = StyleSheet.create({
   resultText: {
     fontSize: 13,
     textAlign: "center",
+    fontWeight:"bold",
     marginVertical: 5,
     paddingHorizontal: 20,
   },
@@ -670,13 +839,14 @@ const styles = StyleSheet.create({
     //borderWidth: 2,
   },
   tryAgainButton: {
-    backgroundColor: "#DAF0C8",
-    padding: 10,
+    backgroundColor: "#8DD9BD",
+    padding: 15,
     borderRadius: 30,
     width: "auto",
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "center",
+    marginVertical:10,
   },
   tryAgainText: {
     fontSize: 13,

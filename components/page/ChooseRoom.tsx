@@ -14,7 +14,7 @@ import {
   useFocusEffect,
 } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { LinearGradient } from "expo-linear-gradient";
 // import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { Room } from "../../components/page/HomeSP";
@@ -22,8 +22,18 @@ import { Room } from "../../components/page/HomeSP";
 export const ChooseRoom: FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const [rooms, setRoom] = useState<Room[]>([]); // กำหนดประเภทเป็น array ของ Child
+  const colorGradients: { [key: string]: [string, string, ...string[]] } = {
+    "#FF5733": ["#FFFFFF", "#FFDEE4", "#FFBED6"], // แดง
+    "#33FF57": ["#FFFFFF", "#6BFF8F", "#A0FFB9"], // เขียว
+    "#3357FF": ["#FFFFFF", "#D6F3FF", "#c5e5fc"], // น้ำเงิน
+    "#F1C40F": ["#FFFFFF", "#FFF8E5", "#FAE9BE"], // เหลือง
+    "#8E44AD": ["#FFFFFF", "#F7E9FF", "#DEC9F2"], // ม่วง
+    "#1ABC9C": ["#FFFFFF", "#48E0C2", "#A0FFF2"], // เขียวอมฟ้า
+    "#E74C3C": ["#FFFFFF", "#FF7675", "#FFC3B9"], // แดงอ่อน
+  };
 
-  [];
+  // เพิ่ม default colors (กัน error)
+  const defaultGradient: [string, string] = ["#ffffff", "#c5e5fc"];
 
   useFocusEffect(
     React.useCallback(() => {
@@ -48,8 +58,8 @@ export const ChooseRoom: FC = () => {
           );
 
           if (response.ok) {
-            const jsonResponse = await response.json(); 
-            console.log("📡 API Response:", jsonResponse); 
+            const jsonResponse = await response.json();
+            console.log("📡 API Response:", jsonResponse);
 
             if (jsonResponse.rooms) {
               const updatedRoom: Room[] = jsonResponse.rooms.map(
@@ -63,8 +73,6 @@ export const ChooseRoom: FC = () => {
                 }
               );
               setRoom(updatedRoom);
-
-              
             } else {
               console.log("No rooms found.");
               setRoom([]);
@@ -127,27 +135,36 @@ export const ChooseRoom: FC = () => {
             rooms.map((rooms) => (
               <Pressable
                 key={rooms.rooms_id}
-                style={[styles.CardRoom,{ backgroundColor: rooms.colors || "#c5e5fc" }]}
-                
+                style={styles.CardRoom}
                 onPress={() => whengotoChooseChildSP(rooms)}
               >
-                <Image
-                  source={
-                    rooms.roomsPic
-                      ? { uri: rooms.roomsPic }
-                      : require("../../assets/icons/User_Icon.png")
-                  }
-                  style={styles.profileIcon}
-                />
-
-                <View style={styles.profileInfo}>
-                  <View style={styles.detailsName}>
-                    <Text style={styles.profileName}>{rooms.rooms_name}</Text>
+                <LinearGradient
+                  colors={
+                    colorGradients[rooms.colors] || ["#c5e5fc", "#ffffff"]
+                  } // ถ้าไม่มีใช้ค่า default
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={styles.gradientCard}
+                >
+                  <Image
+                    source={
+                      rooms.roomsPic
+                        ? { uri: rooms.roomsPic }
+                        : require("../../assets/icons/User_Icon.png")
+                    }
+                    style={styles.profileIcon}
+                  />
+                  <View style={styles.profileInfo}>
+                    <View style={styles.detailsName}>
+                      <Text style={styles.profileName}>{rooms.rooms_name}</Text>
+                    </View>
+                    <View style={styles.detailsAge}>
+                      <Text style={styles.profileAge}>
+                        {rooms.childs_count}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.detailsAge}>
-                    <Text style={styles.profileAge}>{rooms.childs_count}</Text>
-                  </View>
-                </View>
+                </LinearGradient>
               </Pressable>
             ))
           )}
@@ -182,7 +199,6 @@ const styles = StyleSheet.create({
   ScrollView: {
     flex: 1, // ใช้พื้นที่ทั้งหมด
     width: "100%", // ให้เต็มความกว้างของหน้าจอ
-    borderWidth: 2,
     borderRadius: 20,
   },
   scrollContent: {
@@ -194,7 +210,7 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "center", // จัดกึ่งกลางแนวตั้ง
     alignItems: "center", // จัดกึ่งกลางแนวนอน,
-  }, 
+  },
   bottomSection: {
     width: "auto",
     height: "15%",
@@ -216,7 +232,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center", // จัดเนื้อหาภายในการ์ดให้อยู่กึ่งกลาง
-    
     padding: 10,
     borderRadius: 20,
     shadowColor: "#000",
@@ -224,9 +239,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 6,
-    width: 330, // ใช้ความกว้างแบบยืดหยุ่น
-    marginTop: 15,
+    width: 340, // ใช้ความกว้างแบบยืดหยุ่น
     height: 120,
+  },
+  gradientCard: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 20,
+    padding: 10,
   },
   profileIcon: {
     width: 60,
@@ -253,7 +274,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 8,
     marginVertical: 2,
-    borderRadius: 5,
+    borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -265,7 +286,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 8,
     marginVertical: 2,
-    borderRadius: 5,
+    borderRadius: 30,
     alignItems: "center",
   },
   detailsText: {
@@ -359,5 +380,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  
 });

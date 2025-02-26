@@ -19,6 +19,7 @@ import { SplashScreen } from "./components/SplashScreen";
 import { AddChild } from "./components/page/Addchild";
 import { ChooseChild } from "./components/page/ChooseChild";
 import { Assessment } from "./components/page/Assessment";
+import { AssessmentSP } from "./components/page/AssessmentSP";
 import { GM } from "./components/assessment/GM";
 import { FM } from "./components/assessment/FM";
 import { RL } from "./components/assessment/RL";
@@ -30,7 +31,11 @@ import { AddRoom } from "./components/page/AddRoom";
 import { AddchildSP } from "./components/page/AddchildSP";
 import { ChooseRoom } from "./components/page/ChooseRoom";
 import { ChooseChildSP } from "./components/page/ChooseChildSP";
-
+import { GMSP } from "./components/assessment/GMSP";
+import { FMSP } from "./components/assessment/FMSP";
+import { RLSP } from "./components/assessment/RLSP";
+import { ELSP } from "./components/assessment/ELSP";
+import { PSSP } from "./components/assessment/PSSP";
 import { HospitalDetailScreen } from "./components/HospitalDetailScreen";
 
 // === ( Navigation Setup ) ===
@@ -70,11 +75,17 @@ export default function App() {
           <Stack.Screen name="choosechild" component={ChooseChild} />
           <Stack.Screen name="addchild" component={AddChild} />
           <Stack.Screen name="assessment" component={Assessment} />
+          <Stack.Screen name="assessmentsp" component={AssessmentSP} />
           <Stack.Screen name="gm" component={GM} />
           <Stack.Screen name="fm" component={FM} />
           <Stack.Screen name="rl" component={RL} />
           <Stack.Screen name="el" component={EL} />
           <Stack.Screen name="sp" component={PS} />
+          <Stack.Screen name="gmsp" component={GMSP} />
+          <Stack.Screen name="fmsp" component={FMSP} />
+          <Stack.Screen name="rlsp" component={RLSP} />
+          <Stack.Screen name="elsp" component={ELSP} />
+          <Stack.Screen name="spsp" component={PSSP} />
           <Stack.Screen name="training" component={Training} />
           <Stack.Screen name="updateprofile" component={UpdateProfile} />
 

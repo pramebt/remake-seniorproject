@@ -1,4 +1,4 @@
-// RL.tsx
+// PS.tsx
 import React, { FC, useState, useEffect } from "react";
 import {
   View,
@@ -20,7 +20,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { Child } from "../page/HomePR";
 import { LoadingScreenBook } from "../LoadingScreen";
-import { autoBatchEnhancer } from "@reduxjs/toolkit";
 import { LinearGradient } from "expo-linear-gradient";
 
 type GMRouteProp = RouteProp<{ assessment: { child: Child } }, "assessment">;
@@ -46,7 +45,7 @@ export interface UserId {
   user_id: number;
 }
 
-export const RL: FC = () => {
+export const PSSP: FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const route = useRoute<GMRouteProp>();
   const { child } = route.params;
@@ -91,7 +90,7 @@ export const RL: FC = () => {
           );
 
           const response = await fetch(
-            `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-get-details/${child.child_id}/RL/${user_id}/${childAgeInMonths}`,
+            `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-get-details/${child.child_id}/PS/${user_id}/${childAgeInMonths}`,
             {
               method: "GET",
               headers: {
@@ -144,7 +143,6 @@ export const RL: FC = () => {
 
   // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // calculateAgeRange
-
   const calculateAgeRange = (minMonths: number, maxMonths: number): string => {
     const formatAge = (months: number) => {
       if (isNaN(months)) return ""; // ถ้า NaN ให้คืนค่าเป็น string ว่าง
@@ -168,8 +166,8 @@ export const RL: FC = () => {
     navigation.navigate("training", { child, assessmentDetails });
   };
 
-  const whenGotoHome = () => {
-    navigation.navigate("mainPR");
+  const whenGotoHomeSP = () => {
+    navigation.navigate("mainSP");
   };
 
   // navigate goBack
@@ -228,51 +226,45 @@ export const RL: FC = () => {
   }
 
   const imageMap: ImageMap = {
-    "RL1.jpg": require("../../assets/assessment/RL/RL1.jpg"),
-    "RL2.jpg": require("../../assets/assessment/RL/RL2.jpg"),
-    "RL3.jpg": require("../../assets/assessment/RL/RL3.jpg"),
-    "RL4.jpg": require("../../assets/assessment/RL/RL4.jpg"),
-    "RL5.jpg": require("../../assets/assessment/RL/RL5.jpg"),
-    "RL6.jpg": require("../../assets/assessment/RL/RL6.jpg"),
-    "RL7.jpg": require("../../assets/assessment/RL/RL7.jpg"),
-    "RL8.jpg": require("../../assets/assessment/RL/RL8.jpg"),
-    "RL9.jpg": require("../../assets/assessment/RL/RL9.jpg"),
-    "RL10.jpg": require("../../assets/assessment/RL/RL10.jpg"),
-    "RL11.jpg": require("../../assets/assessment/RL/RL11.jpg"),
-    "RL12.jpg": require("../../assets/assessment/RL/RL12.jpg"),
-    "RL13.jpg": require("../../assets/assessment/RL/RL13.jpg"),
-    "RL14.jpg": require("../../assets/assessment/RL/RL14.jpg"),
-    "RL15.jpg": require("../../assets/assessment/RL/RL15.jpg"),
-    "RL16.jpg": require("../../assets/assessment/RL/RL16.jpg"),
-    "RL17.jpg": require("../../assets/assessment/RL/RL17.jpg"),
-    "RL18.jpg": require("../../assets/assessment/RL/RL18.jpg"),
-    "RL19.jpg": require("../../assets/assessment/RL/RL19.jpg"),
-    "RL20.jpg": require("../../assets/assessment/RL/RL20.jpg"),
-    "RL21.jpg": require("../../assets/assessment/RL/RL21.jpg"),
-    "RL22.jpg": require("../../assets/assessment/RL/RL22.jpg"),
-    "RL23.jpg": require("../../assets/assessment/RL/RL23.jpg"),
-    "RL24.jpg": require("../../assets/assessment/RL/RL24.jpg"),
-    "RL25.jpg": require("../../assets/assessment/RL/RL25.jpg"),
-    "RL26.jpg": require("../../assets/assessment/RL/RL26.jpg"),
-    "RL27.jpg": require("../../assets/assessment/RL/RL27.jpg"),
-    "RL28.jpg": require("../../assets/assessment/RL/RL28.jpg"),
+    "PS1.jpg": require("../../assets/assessment/PS/PS1.jpg"),
+    "PS2.jpg": require("../../assets/assessment/PS/PS2.jpeg"),
+    "PS3.jpeg": require("../../assets/assessment/PS/PS3.jpeg"),
+    "PS4.jpg": require("../../assets/assessment/PS/PS4.jpg"),
+    "PS5.jpg": require("../../assets/assessment/PS/PS5.jpg"),
+    "PS6.jpg": require("../../assets/assessment/PS/PS6.jpg"),
+    "PS7.jpg": require("../../assets/assessment/PS/PS7.jpg"),
+    "PS8.jpg": require("../../assets/assessment/PS/PS8.jpg"),
+    "PS9.jpg": require("../../assets/assessment/PS/PS9.jpg"),
+    "PS10.jpg": require("../../assets/assessment/PS/PS10.jpg"),
+    "PS11.jpg": require("../../assets/assessment/PS/PS11.jpg"),
+    "PS12.jpg": require("../../assets/assessment/PS/PS12.jpg"),
+    "PS13.jpg": require("../../assets/assessment/PS/PS13.jpg"),
+    "PS14.jpg": require("../../assets/assessment/PS/PS14.jpg"),
+    "PS15.jpg": require("../../assets/assessment/PS/PS15.jpg"),
+    "PS16.jpg": require("../../assets/assessment/PS/PS16.jpg"),
+    "PS17.jpg": require("../../assets/assessment/PS/PS17.jpg"),
+    "PS18.jpg": require("../../assets/assessment/PS/PS18.jpg"),
+    "PS19.jpg": require("../../assets/assessment/PS/PS19.jpg"),
+    "PS20.jpg": require("../../assets/assessment/PS/PS20.jpg"),
+    "PS21.jpg": require("../../assets/assessment/PS/PS21.jpg"),
+    "PS22.jpg": require("../../assets/assessment/PS/PS22.jpg"),
+    "PS23.jpg": require("../../assets/assessment/PS/PS23.jpg"),
+    "PS24.jpg": require("../../assets/assessment/PS/PS24.jpg"),
+    "PS25.jpg": require("../../assets/assessment/PS/PS25.jpg"),
+    "PS26.jpg": require("../../assets/assessment/PS/PS26.jpg"),
+    "PS27.jpg": require("../../assets/assessment/PS/PS27.jpg"),
 
-    "maracus.png": require("../../assets/assessment/Device/maracus.png"),
-    "setC.png": require("../../assets/assessment/Device/setC.png"),
-    "setE.png": require("../../assets/assessment/Device/setE.png"),
-    "squarewooden.png": require("../../assets/assessment/Device/squarewooden.png"),
-    "storybook.png": require("../../assets/assessment/Device/storybook.png"),
-    "setK.png": require("../../assets/assessment/Device/setK.png"),
-    "setF.png": require("../../assets/assessment/Device/setF.png"),
-    "setG.png": require("../../assets/assessment/Device/setG.png"),
-    "animalfoodclothes.jpg": require("../../assets/assessment/Device/animalfoodclothes.jpg"),
-    "squaretrianglecircle.png": require("../../assets/assessment/Device/squaretrianglecircle.png"),
-    "daynightpics.png": require("../../assets/assessment/Device/daynightpics.png"),
-    "nitannaisuan.JPG": require("../../assets/assessment/Device/nitarnnaisuan.png"),
-    "woodenandpaper.png": require("../../assets/assessment/Device/woodenandpaper.png"),
-
+    "doll.png": require("../../assets/assessment/Device/doll.png"),
+    "squarehandkerchief.png": require("../../assets/assessment/Device/squarehandkerchief.png"),
+    "setB.png": require("../../assets/assessment/Device/setB.png"),
+    "setD.png": require("../../assets/assessment/Device/setD.png"),
+    "cup.png": require("../../assets/assessment/Device/cup.png"),
+    "setH.png": require("../../assets/assessment/Device/setH.png"),
+    //"toothbrushtoothpaste.png": require("../../assets/assessment/Device/toothbrushtoothpaste.png"),
     
-    /*  "GM/gm-1": require("../../assets/assessment/GM/gm-3.png"),
+
+
+    /* "GM/gm-1": require("../../assets/assessment/GM/gm-3.png"),
     "GM/gm-dv-1": require("../../assets/assessment/GM/devices/gm-dv-1.png"),
     "GM/gm-2": require("../../assets/assessment/GM/gm-4.png"),
     "GM/gm-dv-2": require("../../assets/assessment/GM/devices/gm-dv-2.png"),
@@ -319,7 +311,7 @@ export const RL: FC = () => {
         });
         setTimeout(() => {
           setLoading(false);
-        }, 500); // set delay
+        }, 250); // set delay
 
         return data;
       } else {
@@ -382,7 +374,9 @@ export const RL: FC = () => {
               <>
                 {/* assessment header */}
                 <View style={styles.headerTextContainer}>
-                  <Text style={styles.headerText}>Receptive Language (RL)</Text>
+                  <Text style={styles.headerText}>
+                    Personal and Social (PS)
+                  </Text>
                   <Text style={styles.headerAgeContainer}>
                     อายุพัฒนาการ:{" "}
                     {assessmentDetails?.age_range
@@ -452,7 +446,7 @@ export const RL: FC = () => {
                     );
                     fetchNextAssessment(
                       child.child_id,
-                      "RL",
+                      "PS",
                       assessmentInsert.assessment_id,
                       userId?.user_id ?? 0
                     );
@@ -485,7 +479,7 @@ export const RL: FC = () => {
               style={styles.backIcon}
             />
           </Pressable>
-          <Pressable style={styles.sucessButton} onPress={whenGotoHome}>
+          <Pressable style={styles.sucessButton} onPress={whenGotoHomeSP}>
             <Text style={styles.sucessText}>เสร็จสิ้น</Text>
           </Pressable>
         </View>
@@ -504,7 +498,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   ScrollView: {
-    borderWidth: 2,
+    // borderWidth: 2,
   },
 
   topSection: {

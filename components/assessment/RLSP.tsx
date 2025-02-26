@@ -46,7 +46,7 @@ export interface UserId {
   user_id: number;
 }
 
-export const RL: FC = () => {
+export const RLSP: FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const route = useRoute<GMRouteProp>();
   const { child } = route.params;
@@ -168,8 +168,8 @@ export const RL: FC = () => {
     navigation.navigate("training", { child, assessmentDetails });
   };
 
-  const whenGotoHome = () => {
-    navigation.navigate("mainPR");
+  const whenGotoHomeSP = () => {
+    navigation.navigate("mainSP");
   };
 
   // navigate goBack
@@ -485,7 +485,7 @@ export const RL: FC = () => {
               style={styles.backIcon}
             />
           </Pressable>
-          <Pressable style={styles.sucessButton} onPress={whenGotoHome}>
+          <Pressable style={styles.sucessButton} onPress={whenGotoHomeSP}>
             <Text style={styles.sucessText}>เสร็จสิ้น</Text>
           </Pressable>
         </View>

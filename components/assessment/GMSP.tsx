@@ -1,4 +1,4 @@
-// RL.tsx
+// GM.tsx
 import React, { FC, useState, useEffect } from "react";
 import {
   View,
@@ -20,7 +20,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { Child } from "../page/HomePR";
 import { LoadingScreenBook } from "../LoadingScreen";
-import { autoBatchEnhancer } from "@reduxjs/toolkit";
 import { LinearGradient } from "expo-linear-gradient";
 
 type GMRouteProp = RouteProp<{ assessment: { child: Child } }, "assessment">;
@@ -40,13 +39,15 @@ export interface AssessmentDetails {
 
 export interface AssessmentInsert {
   assessment_id: number;
+  supervisor_assessment_id: number;
 }
 
 export interface UserId {
-  user_id: number;
+  // user_id: number;
+  supervisor_id: number;
 }
 
-export const RL: FC = () => {
+export const GMSP: FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const route = useRoute<GMRouteProp>();
   const { child } = route.params;
@@ -81,17 +82,17 @@ export const RL: FC = () => {
         setError(null);
 
         try {
-          const user_id = await AsyncStorage.getItem("userId");
+          const supervisor_id = await AsyncStorage.getItem("userId");
           const token = await AsyncStorage.getItem("userToken");
           console.log(
             "Fetching data for child_id:",
             child.child_id,
             "user_id:",
-            user_id
+            supervisor_id
           );
 
           const response = await fetch(
-            `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-get-details/${child.child_id}/RL/${user_id}/${childAgeInMonths}`,
+            `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-get-details-supervisor/${child.child_id}/GM/${supervisor_id}/${childAgeInMonths}`,
             {
               method: "GET",
               headers: {
@@ -105,22 +106,29 @@ export const RL: FC = () => {
             const data = await response.json();
             console.log("Fetched data:", data);
 
-            setUserId({ user_id: parseInt(user_id || "0", 10) });
+            setUserId({ supervisor_id: parseInt(supervisor_id || "0", 10) });
             setAssessmentDetails(data.data.details);
             // console.log("AssessmentDetails after set:", data.data.details);
             setAssessmentInsert({
               assessment_id: data.data.assessment_id,
+              supervisor_assessment_id: data.data.supervisor_assessment_id
             });
+            console.log("supervisor_assessment_id after set:", data.data.supervisor_assessment_id)
+            setTimeout(() => {
+              setLoading(false);
+            }, 1000); // set delay
             // console.log("AssessmentInsert after set:", data.data.assessment_id);
           } else {
             setError(
               `Failed to fetch assessment data. Status: ${response.status}`
             );
+            setLoading(false);
           }
         } catch (error) {
           setError(
             "Error fetching assessment data. Please check your connection."
           );
+          setLoading(false);
           console.error("Error fetching assessment data:", error);
         } finally {
           setLoading(false);
@@ -136,7 +144,7 @@ export const RL: FC = () => {
   // ตรวจสอบค่า assessmentInsert.assessment_id
   useEffect(() => {
     if (assessmentInsert) {
-      console.log("Current assessment_id:", assessmentInsert.assessment_id);
+      console.log("Current assessment_id:", assessmentInsert.supervisor_assessment_id);
     } else {
       console.log("assessmentInsert is null or undefined");
     }
@@ -168,8 +176,8 @@ export const RL: FC = () => {
     navigation.navigate("training", { child, assessmentDetails });
   };
 
-  const whenGotoHome = () => {
-    navigation.navigate("mainPR");
+  const whenGotoHomeSP = () => {
+    navigation.navigate("mainSP");
   };
 
   // navigate goBack
@@ -222,58 +230,48 @@ export const RL: FC = () => {
 
   // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // imageMap
-
   interface ImageMap {
     [key: string]: any;
   }
 
   const imageMap: ImageMap = {
-    "RL1.jpg": require("../../assets/assessment/RL/RL1.jpg"),
-    "RL2.jpg": require("../../assets/assessment/RL/RL2.jpg"),
-    "RL3.jpg": require("../../assets/assessment/RL/RL3.jpg"),
-    "RL4.jpg": require("../../assets/assessment/RL/RL4.jpg"),
-    "RL5.jpg": require("../../assets/assessment/RL/RL5.jpg"),
-    "RL6.jpg": require("../../assets/assessment/RL/RL6.jpg"),
-    "RL7.jpg": require("../../assets/assessment/RL/RL7.jpg"),
-    "RL8.jpg": require("../../assets/assessment/RL/RL8.jpg"),
-    "RL9.jpg": require("../../assets/assessment/RL/RL9.jpg"),
-    "RL10.jpg": require("../../assets/assessment/RL/RL10.jpg"),
-    "RL11.jpg": require("../../assets/assessment/RL/RL11.jpg"),
-    "RL12.jpg": require("../../assets/assessment/RL/RL12.jpg"),
-    "RL13.jpg": require("../../assets/assessment/RL/RL13.jpg"),
-    "RL14.jpg": require("../../assets/assessment/RL/RL14.jpg"),
-    "RL15.jpg": require("../../assets/assessment/RL/RL15.jpg"),
-    "RL16.jpg": require("../../assets/assessment/RL/RL16.jpg"),
-    "RL17.jpg": require("../../assets/assessment/RL/RL17.jpg"),
-    "RL18.jpg": require("../../assets/assessment/RL/RL18.jpg"),
-    "RL19.jpg": require("../../assets/assessment/RL/RL19.jpg"),
-    "RL20.jpg": require("../../assets/assessment/RL/RL20.jpg"),
-    "RL21.jpg": require("../../assets/assessment/RL/RL21.jpg"),
-    "RL22.jpg": require("../../assets/assessment/RL/RL22.jpg"),
-    "RL23.jpg": require("../../assets/assessment/RL/RL23.jpg"),
-    "RL24.jpg": require("../../assets/assessment/RL/RL24.jpg"),
-    "RL25.jpg": require("../../assets/assessment/RL/RL25.jpg"),
-    "RL26.jpg": require("../../assets/assessment/RL/RL26.jpg"),
-    "RL27.jpg": require("../../assets/assessment/RL/RL27.jpg"),
-    "RL28.jpg": require("../../assets/assessment/RL/RL28.jpg"),
-
-    "maracus.png": require("../../assets/assessment/Device/maracus.png"),
-    "setC.png": require("../../assets/assessment/Device/setC.png"),
-    "setE.png": require("../../assets/assessment/Device/setE.png"),
-    "squarewooden.png": require("../../assets/assessment/Device/squarewooden.png"),
-    "storybook.png": require("../../assets/assessment/Device/storybook.png"),
-    "setK.png": require("../../assets/assessment/Device/setK.png"),
-    "setF.png": require("../../assets/assessment/Device/setF.png"),
-    "setG.png": require("../../assets/assessment/Device/setG.png"),
-    "animalfoodclothes.jpg": require("../../assets/assessment/Device/animalfoodclothes.jpg"),
-    "squaretrianglecircle.png": require("../../assets/assessment/Device/squaretrianglecircle.png"),
-    "daynightpics.png": require("../../assets/assessment/Device/daynightpics.png"),
-    "nitannaisuan.JPG": require("../../assets/assessment/Device/nitarnnaisuan.png"),
-    "woodenandpaper.png": require("../../assets/assessment/Device/woodenandpaper.png"),
-
+    "GM1.jpg": require("../../assets/assessment/GM/GM1.jpg"),
+    "GM2.jpg": require("../../assets/assessment/GM/GM2.jpg"),
+    "GM3.jpg": require("../../assets/assessment/GM/GM3.jpg"),
+    "GM4.jpeg": require("../../assets/assessment/GM/GM4.jpeg"),
+    "GM5.jpg": require("../../assets/assessment/GM/GM5.jpg"),
+    "GM6.jpg": require("../../assets/assessment/GM/GM6.jpg"),
+    "GM7.jpg": require("../../assets/assessment/GM/GM7.jpg"),
+    "GM8.jpg": require("../../assets/assessment/GM/GM8.jpg"),
+    "GM9.jpg": require("../../assets/assessment/GM/GM9.jpg"),
+    "GM10.jpg": require("../../assets/assessment/GM/GM10.jpg"),
+    "GM11.jpg": require("../../assets/assessment/GM/GM11.jpg"),
+    "GM12.jpg": require("../../assets/assessment/GM/GM12.jpg"),
+    "GM13.jpg": require("../../assets/assessment/GM/GM13.jpg"),
+    "GM14.jpg": require("../../assets/assessment/GM/GM14.jpg"),
+    "GM15.jpg": require("../../assets/assessment/GM/GM15.jpg"),
+    "GM16.jpg": require("../../assets/assessment/GM/GM16.jpg"),
+    "GM17.jpg": require("../../assets/assessment/GM/GM17.jpg"),
+    "GM18.jpg": require("../../assets/assessment/GM/GM18.jpg"),
+    "GM19.jpg": require("../../assets/assessment/GM/GM19.jpg"),
+    "GM20.jpg": require("../../assets/assessment/GM/GM20.jpg"),
+    "GM21.jpg": require("../../assets/assessment/GM/GM21.jpg"),
+    "GM22.jpg": require("../../assets/assessment/GM/GM22.jpg"),
+    "GM23.jpg": require("../../assets/assessment/GM/GM23.jpg"),
+    "GM24.jpg": require("../../assets/assessment/GM/GM24.jpg"),
+    "GM25.jpg": require("../../assets/assessment/GM/GM25.jpg"),
+    "GM26.jpg": require("../../assets/assessment/GM/GM26.jpg"),
+    "GM27.jpg": require("../../assets/assessment/GM/GM27.jpg"),
+    "GM28.jpg": require("../../assets/assessment/GM/GM28.jpg"),
     
-    /*  "GM/gm-1": require("../../assets/assessment/GM/gm-3.png"),
-    "GM/gm-dv-1": require("../../assets/assessment/GM/devices/gm-dv-1.png"),
+    "maracus.png": require("../../assets/assessment/Device/maracus.png"),
+    "setA.png": require("../../assets/assessment/Device/setA.png"),
+    "rope.png": require("../../assets/assessment/Device/rope.png"),
+    "ball.png": require("../../assets/assessment/Device/ball.png"),
+    "ropeonbox.png": require("../../assets/assessment/Device/ropeonbox.png"),
+    "setJ.png": require("../../assets/assessment/Device/setJ.png"),
+
+    /*  "GM/gm-dv-1": require("../../assets/assessment/GM/devices/gm-dv-1.png"),
     "GM/gm-2": require("../../assets/assessment/GM/gm-4.png"),
     "GM/gm-dv-2": require("../../assets/assessment/GM/devices/gm-dv-2.png"),
     "GM/gm-tr-2": require("../../assets/assessment/GM/trainings/gm-tr-2.png"), */
@@ -289,21 +287,21 @@ export const RL: FC = () => {
   const fetchNextAssessment = async (
     child_id: number,
     aspect: string,
-    assessment_id: number,
-    user_id: number
+    supervisor_assessment_id: number,
+    supervisor_id: number
   ) => {
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem("userToken");
       const response = await fetch(
-        `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-next/${child_id}/${aspect}`,
+        `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-next-supervisor/${child_id}/${aspect}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ assessment_id, user_id }), // ส่ง assessment_id ใน body ของ request
+          body: JSON.stringify({ supervisor_assessment_id, supervisor_id }), 
         }
       );
 
@@ -312,14 +310,15 @@ export const RL: FC = () => {
         console.log("Fetched next assessment:", data);
 
         // Update state with the fetched data
-        setUserId({ user_id: data.next_assessment.user_id });
+        setUserId({ supervisor_id: data.next_assessment.supervisor_id });
         setAssessmentDetails(data.next_assessment.details);
         setAssessmentInsert({
           assessment_id: data.next_assessment.assessment_id,
+          supervisor_assessment_id: data.next_assessment.supervisor_assessment_id
         });
         setTimeout(() => {
           setLoading(false);
-        }, 500); // set delay
+        }, 250); // set delay
 
         return data;
       } else {
@@ -371,6 +370,7 @@ export const RL: FC = () => {
       </View>
 
       {/* Mid Section */}
+      
       <View style={styles.midSection}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.containerSection}>
@@ -382,7 +382,7 @@ export const RL: FC = () => {
               <>
                 {/* assessment header */}
                 <View style={styles.headerTextContainer}>
-                  <Text style={styles.headerText}>Receptive Language (RL)</Text>
+                  <Text style={styles.headerText}>Gross Motor (GM)</Text>
                   <Text style={styles.headerAgeContainer}>
                     อายุพัฒนาการ:{" "}
                     {assessmentDetails?.age_range
@@ -452,9 +452,9 @@ export const RL: FC = () => {
                     );
                     fetchNextAssessment(
                       child.child_id,
-                      "RL",
-                      assessmentInsert.assessment_id,
-                      userId?.user_id ?? 0
+                      "GM",
+                      assessmentInsert.supervisor_assessment_id,
+                      userId?.supervisor_id ?? 0
                     );
                   } else {
                     console.log("assessmentInsert is null or undefined");
@@ -485,7 +485,7 @@ export const RL: FC = () => {
               style={styles.backIcon}
             />
           </Pressable>
-          <Pressable style={styles.sucessButton} onPress={whenGotoHome}>
+          <Pressable style={styles.sucessButton} onPress={whenGotoHomeSP}>
             <Text style={styles.sucessText}>เสร็จสิ้น</Text>
           </Pressable>
         </View>
@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   ScrollView: {
-    borderWidth: 2,
+    // borderWidth: 2,
   },
 
   topSection: {

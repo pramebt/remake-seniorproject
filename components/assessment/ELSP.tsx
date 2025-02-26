@@ -1,4 +1,4 @@
-// RL.tsx
+// EL.tsx
 import React, { FC, useState, useEffect } from "react";
 import {
   View,
@@ -20,7 +20,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { Child } from "../page/HomePR";
 import { LoadingScreenBook } from "../LoadingScreen";
-import { autoBatchEnhancer } from "@reduxjs/toolkit";
 import { LinearGradient } from "expo-linear-gradient";
 
 type GMRouteProp = RouteProp<{ assessment: { child: Child } }, "assessment">;
@@ -46,7 +45,7 @@ export interface UserId {
   user_id: number;
 }
 
-export const RL: FC = () => {
+export const ELSP: FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const route = useRoute<GMRouteProp>();
   const { child } = route.params;
@@ -91,7 +90,7 @@ export const RL: FC = () => {
           );
 
           const response = await fetch(
-            `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-get-details/${child.child_id}/RL/${user_id}/${childAgeInMonths}`,
+            `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-get-details/${child.child_id}/EL/${user_id}/${childAgeInMonths}`,
             {
               method: "GET",
               headers: {
@@ -160,7 +159,6 @@ export const RL: FC = () => {
     if (minAge && maxAge) return `${minAge} - ${maxAge}`;
     return minAge || maxAge || "ข้อมูลไม่สมบูรณ์";
   };
-
   // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // navigate
 
@@ -168,8 +166,8 @@ export const RL: FC = () => {
     navigation.navigate("training", { child, assessmentDetails });
   };
 
-  const whenGotoHome = () => {
-    navigation.navigate("mainPR");
+  const whenGotoHomeSP = () => {
+    navigation.navigate("mainSP");
   };
 
   // navigate goBack
@@ -228,51 +226,44 @@ export const RL: FC = () => {
   }
 
   const imageMap: ImageMap = {
-    "RL1.jpg": require("../../assets/assessment/RL/RL1.jpg"),
-    "RL2.jpg": require("../../assets/assessment/RL/RL2.jpg"),
-    "RL3.jpg": require("../../assets/assessment/RL/RL3.jpg"),
-    "RL4.jpg": require("../../assets/assessment/RL/RL4.jpg"),
-    "RL5.jpg": require("../../assets/assessment/RL/RL5.jpg"),
-    "RL6.jpg": require("../../assets/assessment/RL/RL6.jpg"),
-    "RL7.jpg": require("../../assets/assessment/RL/RL7.jpg"),
-    "RL8.jpg": require("../../assets/assessment/RL/RL8.jpg"),
-    "RL9.jpg": require("../../assets/assessment/RL/RL9.jpg"),
-    "RL10.jpg": require("../../assets/assessment/RL/RL10.jpg"),
-    "RL11.jpg": require("../../assets/assessment/RL/RL11.jpg"),
-    "RL12.jpg": require("../../assets/assessment/RL/RL12.jpg"),
-    "RL13.jpg": require("../../assets/assessment/RL/RL13.jpg"),
-    "RL14.jpg": require("../../assets/assessment/RL/RL14.jpg"),
-    "RL15.jpg": require("../../assets/assessment/RL/RL15.jpg"),
-    "RL16.jpg": require("../../assets/assessment/RL/RL16.jpg"),
-    "RL17.jpg": require("../../assets/assessment/RL/RL17.jpg"),
-    "RL18.jpg": require("../../assets/assessment/RL/RL18.jpg"),
-    "RL19.jpg": require("../../assets/assessment/RL/RL19.jpg"),
-    "RL20.jpg": require("../../assets/assessment/RL/RL20.jpg"),
-    "RL21.jpg": require("../../assets/assessment/RL/RL21.jpg"),
-    "RL22.jpg": require("../../assets/assessment/RL/RL22.jpg"),
-    "RL23.jpg": require("../../assets/assessment/RL/RL23.jpg"),
-    "RL24.jpg": require("../../assets/assessment/RL/RL24.jpg"),
-    "RL25.jpg": require("../../assets/assessment/RL/RL25.jpg"),
-    "RL26.jpg": require("../../assets/assessment/RL/RL26.jpg"),
-    "RL27.jpg": require("../../assets/assessment/RL/RL27.jpg"),
-    "RL28.jpg": require("../../assets/assessment/RL/RL28.jpg"),
+    "EL1.jpg": require("../../assets/assessment/EL/EL1.jpg"),
+    "EL2.jpg": require("../../assets/assessment/EL/EL2.jpg"),
+    "EL3.jpg": require("../../assets/assessment/EL/EL3.jpeg"),
+    "EL4.jpg": require("../../assets/assessment/EL/EL4.jpeg"),
+    "EL5.jpg": require("../../assets/assessment/EL/EL5.jpg"),
+    "EL6.jpg": require("../../assets/assessment/EL/EL6.jpg"),
+    "EL7.jpg": require("../../assets/assessment/EL/EL7.jpg"),
+    "EL8.jpg": require("../../assets/assessment/EL/EL8.jpg"),
+    "EL9.jpg": require("../../assets/assessment/EL/EL9.jpg"),
+    "EL10.jpg": require("../../assets/assessment/EL/EL10.jpg"),
+    "EL11.jpg": require("../../assets/assessment/EL/EL11.jpg"),
+    "EL12.jpg": require("../../assets/assessment/EL/EL12.jpg"),
+    "EL13.jpg": require("../../assets/assessment/EL/EL13.jpg"),
+    "EL14.jpg": require("../../assets/assessment/EL/EL14.jpg"),
+    "EL15.jpg": require("../../assets/assessment/EL/EL15.jpg"),
+    "EL16.jpg": require("../../assets/assessment/EL/EL16.jpg"),
+    "EL17.jpg": require("../../assets/assessment/EL/EL17.jpg"),
+    "EL18.jpg": require("../../assets/assessment/EL/EL18.jpg"),
+    "EL19.jpg": require("../../assets/assessment/EL/EL19.jpg"),
+    "EL20.jpg": require("../../assets/assessment/EL/EL20.jpg"),
+    "EL21.jpg": require("../../assets/assessment/EL/EL21.jpg"),
+    "EL22.jpg": require("../../assets/assessment/EL/EL22.jpg"),
+    "EL23.jpg": require("../../assets/assessment/EL/EL23.jpg"),
+    "EL24.jpg": require("../../assets/assessment/EL/EL24.jpg"),
+    "EL25.jpg": require("../../assets/assessment/EL/EL25.jpg"),
+    "EL26.jpg": require("../../assets/assessment/EL/EL26.jpg"),
+    "EL27.jpg": require("../../assets/assessment/EL/EL27.jpg"),
 
-    "maracus.png": require("../../assets/assessment/Device/maracus.png"),
-    "setC.png": require("../../assets/assessment/Device/setC.png"),
     "setE.png": require("../../assets/assessment/Device/setE.png"),
-    "squarewooden.png": require("../../assets/assessment/Device/squarewooden.png"),
-    "storybook.png": require("../../assets/assessment/Device/storybook.png"),
-    "setK.png": require("../../assets/assessment/Device/setK.png"),
-    "setF.png": require("../../assets/assessment/Device/setF.png"),
-    "setG.png": require("../../assets/assessment/Device/setG.png"),
+    "sanimalfoodclothes.jpg": require("../../assets/assessment/Device/animalfoodclothes.jpg"),
+    "chickenbutterflyflower.png": require("../../assets/assessment/Device/chickenbutterflyflower.png"),
+    "doll.png": require("../../assets/assessment/Device/doll.png"),
     "animalfoodclothes.jpg": require("../../assets/assessment/Device/animalfoodclothes.jpg"),
-    "squaretrianglecircle.png": require("../../assets/assessment/Device/squaretrianglecircle.png"),
-    "daynightpics.png": require("../../assets/assessment/Device/daynightpics.png"),
-    "nitannaisuan.JPG": require("../../assets/assessment/Device/nitarnnaisuan.png"),
-    "woodenandpaper.png": require("../../assets/assessment/Device/woodenandpaper.png"),
+    "card.png": require("../../assets/assessment/Device/card.png"),
 
     
-    /*  "GM/gm-1": require("../../assets/assessment/GM/gm-3.png"),
+
+    /* "GM/gm-1": require("../../assets/assessment/GM/gm-3.png"),
     "GM/gm-dv-1": require("../../assets/assessment/GM/devices/gm-dv-1.png"),
     "GM/gm-2": require("../../assets/assessment/GM/gm-4.png"),
     "GM/gm-dv-2": require("../../assets/assessment/GM/devices/gm-dv-2.png"),
@@ -319,7 +310,7 @@ export const RL: FC = () => {
         });
         setTimeout(() => {
           setLoading(false);
-        }, 500); // set delay
+        }, 250); // set delay
 
         return data;
       } else {
@@ -375,14 +366,16 @@ export const RL: FC = () => {
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.containerSection}>
             {loading ? (
-              <LoadingScreenBook />
+              <LoadingScreenBook/>
             ) : error ? (
               <Text style={styles.errorText}>{error}</Text>
             ) : (
               <>
                 {/* assessment header */}
                 <View style={styles.headerTextContainer}>
-                  <Text style={styles.headerText}>Receptive Language (RL)</Text>
+                  <Text style={styles.headerText}>
+                    Expressive Language (EL)
+                  </Text>
                   <Text style={styles.headerAgeContainer}>
                     อายุพัฒนาการ:{" "}
                     {assessmentDetails?.age_range
@@ -452,7 +445,7 @@ export const RL: FC = () => {
                     );
                     fetchNextAssessment(
                       child.child_id,
-                      "RL",
+                      "EL",
                       assessmentInsert.assessment_id,
                       userId?.user_id ?? 0
                     );
@@ -485,7 +478,7 @@ export const RL: FC = () => {
               style={styles.backIcon}
             />
           </Pressable>
-          <Pressable style={styles.sucessButton} onPress={whenGotoHome}>
+          <Pressable style={styles.sucessButton} onPress={whenGotoHomeSP}>
             <Text style={styles.sucessText}>เสร็จสิ้น</Text>
           </Pressable>
         </View>
@@ -504,7 +497,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   ScrollView: {
-    borderWidth: 2,
+    // borderWidth: 2,
   },
 
   topSection: {

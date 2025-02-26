@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Animated,
+  TouchableHighlight,
+  Dimensions,
 } from "react-native";
 import {
   useNavigation,
@@ -25,16 +27,30 @@ import {
 
 import { LoadingScreenBaby } from "../LoadingScreen";
 import { LinearGradient } from "expo-linear-gradient";
-
+import { BarChart, PieChart } from "react-native-chart-kit";
 export interface Child {
   child_id: number;
   childName: string;
-  nickname: string;
+  nickName: string;
   birthday: string;
   gender: string;
   childPic: string;
   age?: number; // Add age property (optional)
 }
+type AssessmentData = {
+  message: string;
+  data: {
+    aspect: string;
+    passed_count: number;
+    not_passed_count: number;
+  
+  }[];
+  summary: {
+    passed_count: number;
+    not_passed_count: number;
+  };
+};
+
 
 export interface Room {
   rooms_id: number;
@@ -72,26 +88,42 @@ export const HomeSP: FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const [loading, setLoading] = useState<boolean>(true);
   const [rooms, setRoom] = useState<Room[]>([]);
+  const [dashboardData, setDashboardData] = useState<AssessmentData | null>(null);
 
   const { expoPushToken } = usePushNotifications();
+  const colorGradients: { [key: string]: [string, string, ...string[]] } = {
+    "#FF5733": ["#FFFFFF", "#FFDEE4", "#FFBED6"], // แดง
+    "#33FF57": ["#FFFFFF", "#6BFF8F", "#A0FFB9"], // เขียว
+    "#3357FF": ["#FFFFFF", "#D6F3FF", "#c5e5fc"], // น้ำเงิน
+    "#F1C40F": ["#FFFFFF", "#FFF8E5", "#FAE9BE"], // เหลือง
+    "#8E44AD": ["#FFFFFF", "#F7E9FF", "#DEC9F2"], // ม่วง
+    "#1ABC9C": ["#FFFFFF", "#48E0C2", "#A0FFF2"], // เขียวอมฟ้า
+    "#E74C3C": ["#FFFFFF", "#FF7675", "#FFC3B9"], // แดงอ่อน
+  };
+  const defaultGradient: [string, string] = ["#c5e5fc", "#ffffff"];
+  const screenWidth = Dimensions.get("window").width;
+  
+  
   // useEffect
   useFocusEffect(
     React.useCallback(() => {
-      const fetchChildData = async () => {
+      const fetchData = async () => {
         try {
           const supervisor_id = await AsyncStorage.getItem("userId");
           const token = await AsyncStorage.getItem("userToken");
 
           if (!supervisor_id) {
-            console.error("Parent ID is missing.");
+            console.error("Supervisor ID is missing.");
             return;
           }
 
           if (!token) {
-            console.error("token is missing.");
+            console.error("Token is missing.");
             return;
           }
+
           setLoading(true);
+
           if (expoPushToken) {
             const user_id = parseInt(supervisor_id, 10);
             if (!isNaN(user_id)) {
@@ -101,57 +133,78 @@ export const HomeSP: FC = () => {
             }
           }
 
-          if (supervisor_id) {
-            const response = await fetch(
-              `https://senior-test-deploy-production-1362.up.railway.app/api/rooms/get-all-data?supervisor_id=${supervisor_id}`,
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-
-            if (response.ok) {
-              const jsonResponse = await response.json();
-              console.log("json response HOME: ", jsonResponse);
-              if (jsonResponse.rooms) {
-                const updatedRoom: Room[] = jsonResponse.rooms.map(
-                  (rooms: Room) => {
-                    const imageUrl = `https://senior-test-deploy-production-1362.up.railway.app/${rooms.roomsPic}`;
-                    return {
-                      ...rooms,
-                      roomsPic: imageUrl,
-                      colors: rooms.colors || "#c5e5fc",
-                    };
-                  }
-                );
-                setTimeout(() => {
-                  setRoom(updatedRoom);
-                  setLoading(false);
-                }, 100); // set delay
-              } else {
-                setRoom([]);
-                setLoading(false);
-              }
-            } else {
-              console.error(
-                "HTTP Error: ",
-                response.status,
-                response.statusText
-              );
-              setLoading(false);
+          // Fetch Room Data
+          const roomResponse = await fetch(
+            `https://senior-test-deploy-production-1362.up.railway.app/api/rooms/get-all-data?supervisor_id=${supervisor_id}`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
             }
+          );
+
+          if (roomResponse.ok) {
+            const jsonResponse = await roomResponse.json();
+            console.log("json response HOME: ", jsonResponse);
+
+            if (jsonResponse.rooms) {
+              const updatedRoom: Room[] = jsonResponse.rooms.map(
+                (rooms: Room) => {
+                  const imageUrl = `https://senior-test-deploy-production-1362.up.railway.app/${rooms.roomsPic}`;
+                  return {
+                    ...rooms,
+                    roomsPic: imageUrl,
+                    colors: rooms.colors || "#c5e5fc",
+                  };
+                }
+              );
+
+              setRoom(updatedRoom);
+            } else {
+              setRoom([]);
+            }
+          } else {
+            console.error(
+              "HTTP Error: ",
+              roomResponse.status,
+              roomResponse.statusText
+            );
           }
+
+          // Fetch Dashboard Data
+          const dashboardResponse = await fetch(
+            `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-data-supervisor/${supervisor_id}`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (dashboardResponse.ok) {
+            const dashboardData = await dashboardResponse.json();
+            console.log("Dashboard Data: ", dashboardData);
+            setDashboardData(dashboardData); // Ensure you have a state variable for this
+          } else {
+            console.error(
+              "HTTP Error: ",
+              dashboardResponse.status,
+              dashboardResponse.statusText
+            );
+          }
+
+          setLoading(false);
         } catch (error) {
-          console.error("Error retrieving child data:", error);
+          console.error("Error retrieving data:", error);
+          setLoading(false);
         }
       };
 
-      fetchChildData();
+      fetchData();
     }, [expoPushToken])
   );
-
   const whenGotoAddroom = () => {
     navigation.navigate("addroom");
   };
@@ -179,16 +232,43 @@ export const HomeSP: FC = () => {
     outputRange: ["0deg", "45deg"], // หมุน 45 องศา
   });
 
-  if (loading) {
-    return <LoadingScreenBaby />;
+  //ตรวจสอบว่ามีข้อมูลหรือไม่
+  if (!dashboardData || !dashboardData.data || dashboardData.data.length === 0) {
+    return <Text>ไม่มีข้อมูลการประเมิน</Text>;
   }
 
+  // ดึงข้อมูลด้านพัฒนาและแยกค่าผ่าน/ไม่ผ่าน
+  const labels = dashboardData?.data?.map((item) => item.aspect) ?? [];
+const passedData = dashboardData?.data?.map((item) => Number(item.passed_count) || 0) ?? [];
+const notPassedData = dashboardData?.data?.map((item) => Number(item.not_passed_count) || 0) ?? [];
+const totalPassed = dashboardData?.data?.reduce((sum, item) => sum + (Number(item.passed_count) || 0), 0);
+const totalNotPassed = dashboardData?.data?.reduce((sum, item) => sum + (Number(item.not_passed_count) || 0), 0);
+  const barData = {
+    labels: labels, // ["GM", "FM", "RL", ...]
+    datasets: [
+      {
+        data: passedData // จำนวนเด็กที่ผ่าน
+      },
+      {
+        data: notPassedData // จำนวนเด็กที่ไม่ผ่าน
+      }
+    ]
+  };
   
+  const pieData = [
+    { name: "ผ่าน", population: totalPassed, color: "#72C3DC", legendFontColor: "#000", legendFontSize: 14 },
+    { name: "ไม่ผ่าน", population: totalNotPassed, color: "#FF6B6B", legendFontColor: "#000", legendFontSize: 14 }
+  ];
+
+  // if (loading) {
+  //   return <LoadingScreenBaby />;
+  // }
+
   return (
     <View style={styles.container}>
       {/* Top Section */}
       <View style={styles.topSection}>
-        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+        <ScrollView   horizontal={true} showsHorizontalScrollIndicator={false}>
           <View style={styles.roomInfo}>
             <ScrollView
               horizontal={true} // เปิดการเลื่อนแนวนอน
@@ -217,33 +297,35 @@ export const HomeSP: FC = () => {
                 rooms.map((rooms) => (
                   <Pressable
                     key={rooms.rooms_id}
-                    style={[
-                      styles.CardRoom,
-                      { backgroundColor: rooms.colors || "#c5e5fc" },
-                    ]}
                     onPress={() => whengotoChooseChildSP(rooms)}
                   >
-                    <Image
-                      source={
-                        rooms.roomsPic
-                          ? { uri: rooms.roomsPic }
-                          : require("../../assets/icons/User_Icon.png")
-                      }
-                      style={styles.profileIcon}
-                    />
-
-                    <View style={styles.profileInfo}>
-                      <View style={styles.detailsName}>
-                        <Text style={styles.profileName}>
-                          {rooms.rooms_name}
-                        </Text>
+                    <LinearGradient
+                      colors={colorGradients[rooms.colors] ?? defaultGradient} // ใช้ Gradient
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.CardRoom}
+                    >
+                      <Image
+                        source={
+                          rooms.roomsPic
+                            ? { uri: rooms.roomsPic }
+                            : require("../../assets/icons/User_Icon.png")
+                        }
+                        style={styles.profileIcon}
+                      />
+                      <View style={styles.profileInfo}>
+                        <View style={styles.detailsName}>
+                          <Text style={styles.profileName}>
+                            {rooms.rooms_name}
+                          </Text>
+                        </View>
+                        <View style={styles.detailsAge}>
+                          <Text style={styles.profileAge}>
+                            {rooms.childs_count}
+                          </Text>
+                        </View>
                       </View>
-                      <View style={styles.detailsAge}>
-                        <Text style={styles.profileAge}>
-                          {rooms.childs_count}
-                        </Text>
-                      </View>
-                    </View>
+                    </LinearGradient>
                   </Pressable>
                 ))
               )}
@@ -254,26 +336,26 @@ export const HomeSP: FC = () => {
       <View style={styles.addContainer}>
         {/* ไอคอนที่ 2 */}
         <View>
-          <Pressable onPress={whenGotoAddroom}>
-          <LinearGradient
-            colors={["#F5E5FF", "#E1D7FF", "#CEC9FF"]}
-            locations={[0, 0.5, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.addButton}
-          >
-            <Image
-              source={require("../../assets/icons/group.png")}
-              style={styles.icon}
-            />
-             </LinearGradient>
-          </Pressable>
+          <TouchableOpacity onPress={whenGotoAddroom}>
+            <LinearGradient
+              colors={["#F5E5FF", "#E1D7FF", "#CEC9FF"]}
+              locations={[0, 0.5, 1]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.addButton}
+            >
+              <Image
+                source={require("../../assets/icons/group.png")}
+                style={styles.icon}
+              />
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
       </View>
 
       {/* Middle Section */}
       <View style={styles.middleSection}>
-        <Pressable onPress={whenGotoChooseRoom}>
+        <TouchableOpacity onPress={whenGotoChooseRoom}>
           <LinearGradient
             colors={["#FFFFFF", "#E6FFF0", "#DCF5F0"]}
             locations={[0, 0.5, 1]}
@@ -282,30 +364,51 @@ export const HomeSP: FC = () => {
             style={styles.evaluateButton}
           >
             <Image
-              source={require("../../assets/icons/assessment.png")}
+              source={require("../../assets/icons/assessmentSP.png")}
               style={styles.asessmentIcon}
             />
             <Text style={styles.evaluateText}>เริ่มการประเมิน</Text>
           </LinearGradient>
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       {/* Bottom Section */}
-      <View style={styles.bottomSection}>
-        <View style={styles.graphContainer}>
-          <Image
-            source={require("../../assets/image/bar_chart.png")}
-            style={styles.graphImage}
-          />
-        </View>
-        <View style={styles.pieChartContainer}>
-          <Image
-            source={require("../../assets/image/pie_chart.png")}
-            style={styles.pieChartImage}
-          />
-        </View>
-      </View>
-    </View>
+      <View style={styles.graphContainer}>
+    <Text>จำนวนเด็กที่ผ่านและไม่ผ่านการประเมิน</Text>
+    
+    <BarChart
+      data={barData}
+      width={screenWidth - 40}
+      height={220}
+      yAxisLabel="คน "
+      yAxisSuffix=""
+      chartConfig={{
+        backgroundGradientFrom: "#FFFFFF",
+        backgroundGradientTo: "#FFFFFF",
+        color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+        barPercentage: 0.5
+      }}
+      fromZero
+    />
+  </View>
+
+    {/* Pie Chart */}
+    <PieChart
+    data={pieData}
+    width={screenWidth - 40}
+    height={220}
+    chartConfig={{
+      backgroundGradientFrom: "#FFFFFF",
+      backgroundGradientTo: "#FFFFFF",
+      color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`
+    }}
+    accessor={"population"}
+    backgroundColor={"transparent"}
+    paddingLeft={"15"}
+    absolute
+  />
+  </View>
+    
   );
 };
 
@@ -346,7 +449,7 @@ const styles = StyleSheet.create({
     elevation: 6,
     width: "100%",
     height: "100%",
-    borderWidth: 1,
+    
   },
   icon: {
     width: 50,
@@ -374,12 +477,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 1,
     shadowRadius: 3,
     elevation: 10,
     bottom: 10,
   },
-  
 
   //----------------------------------------------------------------
 
@@ -388,7 +490,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "auto",
     marginBottom: 10,
-
     paddingHorizontal: 20,
   },
   evaluateButton: {
@@ -396,10 +497,10 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 25,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 2, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 4,
+    elevation: 10,
     width: "100%",
     height: 95,
   },
@@ -413,7 +514,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#333",
     marginTop: 15,
-    marginLeft: 50,
+    paddingHorizontal: 20,
   },
   //------------------------------------------------------------------
   bottomSection: {
@@ -428,11 +529,15 @@ const styles = StyleSheet.create({
     marginBottom: 100,
   },
   graphContainer: {
-    width: "100%",
-    height: "50%",
-    backgroundColor: "#ffffff",
-    bottom: 5,
+    backgroundColor: "#fff",
     borderRadius: 10,
+    padding: 20,
+    margin: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 4,
   },
   graphImage: {
     width: "100%",
@@ -480,7 +585,6 @@ const styles = StyleSheet.create({
   ScrollView: {
     flex: 1,
     width: "100%",
-    // borderWidth: 2,
     borderRadius: 20,
     height: "100%",
   },
@@ -551,7 +655,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 8,
     marginVertical: 2,
-    borderRadius: 5,
+    borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -567,7 +671,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 8,
     marginVertical: 2,
-    borderRadius: 5,
+    borderRadius: 30,
     alignItems: "center",
   },
   profileAge: {

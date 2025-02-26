@@ -100,8 +100,8 @@ export const ChooseChildSP: FC = () => {
     navigation.navigate("detail", { id });
   };
 
-  const whenGotoAssessment = (child: Child) => {
-    navigation.navigate("assessment", { child });
+  const whenGotoAssessmentSP = (child: Child) => {
+    navigation.navigate("assessmentsp", { child });
   };
 
   // navigate goBack
@@ -164,7 +164,7 @@ export const ChooseChildSP: FC = () => {
                    
                 }
               >
-                <Pressable onPress={() => whenGotoAssessment(child)}>
+                <Pressable onPress={() => whenGotoAssessmentSP(child)}>
                   <Image
                     source={
                       child.childPic
@@ -176,7 +176,7 @@ export const ChooseChildSP: FC = () => {
                 </Pressable>
                 <View style={styles.profileInfo}>
                   <View style={styles.detailsName}>
-                    <Text style={styles.profileName}>{child.nickname}</Text>
+                    <Text style={styles.profileName}>{child.nickName}</Text>
                   </View>
                   <View style={styles.detailsAge}>
                     <Text style={styles.profileAge}>{child.age}</Text>
