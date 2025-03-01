@@ -41,6 +41,7 @@ import { ELSP } from "./components/assessment/ELSP";
 import { PSSP } from "./components/assessment/PSSP";
 import { HospitalDetailScreen } from "./components/HospitalDetailScreen";
 import { ChildDetailSP } from "./components/page/ChildDetailSP";
+import { GraphDashboard } from "./components/page/GraphDashboard";
 
 // === ( Navigation Setup ) ===
 const Stack = createNativeStackNavigator();
@@ -74,7 +75,7 @@ export default function App() {
           <Stack.Screen name="register" component={Register} />
           <Stack.Screen name="privacy" component={Privacy} />
           <Stack.Screen name="mainPR" component={MainPR} />
-
+          <Stack.Screen name="graphdashboard" component={GraphDashboard} />
           <Stack.Screen name="mainSP" component={MainSP} />
           <Stack.Screen name="choosechild" component={ChooseChild} />
           <Stack.Screen name="addchild" component={AddChild} />

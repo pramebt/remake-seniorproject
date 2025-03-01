@@ -218,14 +218,16 @@ export const HomeSP: FC = () => {
   const whenGotoChooseRoom = () => {
     navigation.navigate("chooseroom");
   };
-
+  const whenGotoGraphDashboard = () => {
+    navigation.navigate("graphdashboard");
+  };
   const [showIcons, setShowIcons] = useState(false); // สถานะการโชว์ไอคอน
   const rotation = useRef(new Animated.Value(0)).current;
 
   const handlePress = () => {
     setShowIcons((prev) => !prev);
   };
-
+  
   const rotateInterpolation = rotation.interpolate({
     inputRange: [0, 1],
     outputRange: ["0deg", "45deg"], // หมุน 45 องศา
@@ -415,7 +417,7 @@ export const HomeSP: FC = () => {
           <View style={styles.graphContainer}>
             <TouchableOpacity
               style={styles.graphButton}
-              onPress={() => navigation.navigate("GraphDetailScreen")}
+              onPress={() => whenGotoGraphDashboard()}
             ></TouchableOpacity>
             {/* กราฟ BarChart */}
             <BarChart
