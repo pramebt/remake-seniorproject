@@ -17,10 +17,8 @@ import {
   useFocusEffect,
 } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { LoadingScreenAdvice, LoadingScreenBook, LoadingScreenPassAll, LoadingScreenSearchfile } from "../LoadingScreen";
 import { Child } from "../page/HomePR";
-import { LoadingScreenBook } from "../LoadingScreen";
-import { autoBatchEnhancer } from "@reduxjs/toolkit";
 import { LinearGradient } from "expo-linear-gradient";
 
 type GMRouteProp = RouteProp<{ assessment: { child: Child } }, "assessment">;
@@ -39,11 +37,13 @@ export interface AssessmentDetails {
 }
 
 export interface AssessmentInsert {
-  assessment_id: number;
+  // assessment_id: number;
+  supervisor_assessment_id: number;
 }
 
 export interface UserId {
-  user_id: number;
+  // user_id: number;
+  supervisor_id: number;
 }
 
 export const RLSP: FC = () => {
@@ -81,17 +81,17 @@ export const RLSP: FC = () => {
         setError(null);
 
         try {
-          const user_id = await AsyncStorage.getItem("userId");
+          const supervisor_id = await AsyncStorage.getItem("userId");
           const token = await AsyncStorage.getItem("userToken");
           console.log(
             "Fetching data for child_id:",
             child.child_id,
             "user_id:",
-            user_id
+            supervisor_id
           );
 
           const response = await fetch(
-            `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-get-details/${child.child_id}/RL/${user_id}/${childAgeInMonths}`,
+            `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-get-details-supervisor/${child.child_id}/RL/${supervisor_id}/${childAgeInMonths}`,
             {
               method: "GET",
               headers: {
@@ -105,22 +105,29 @@ export const RLSP: FC = () => {
             const data = await response.json();
             console.log("Fetched data:", data);
 
-            setUserId({ user_id: parseInt(user_id || "0", 10) });
+            setUserId({ supervisor_id: parseInt(supervisor_id || "0", 10) });
             setAssessmentDetails(data.data.details);
             // console.log("AssessmentDetails after set:", data.data.details);
             setAssessmentInsert({
-              assessment_id: data.data.assessment_id,
+              // assessment_id: data.data.assessment_id,
+              supervisor_assessment_id: data.data.supervisor_assessment_id
             });
+            console.log("supervisor_assessment_id after set:", data.data.supervisor_assessment_id)
+            setTimeout(() => {
+              setLoading(false);
+            }, 1000); // set delay
             // console.log("AssessmentInsert after set:", data.data.assessment_id);
           } else {
             setError(
               `Failed to fetch assessment data. Status: ${response.status}`
             );
+            setLoading(false);
           }
         } catch (error) {
           setError(
             "Error fetching assessment data. Please check your connection."
           );
+          setLoading(false);
           console.error("Error fetching assessment data:", error);
         } finally {
           setLoading(false);
@@ -136,7 +143,7 @@ export const RLSP: FC = () => {
   // ตรวจสอบค่า assessmentInsert.assessment_id
   useEffect(() => {
     if (assessmentInsert) {
-      console.log("Current assessment_id:", assessmentInsert.assessment_id);
+      console.log("Current supervisor_assessment_id:", assessmentInsert.supervisor_assessment_id);
     } else {
       console.log("assessmentInsert is null or undefined");
     }
@@ -289,38 +296,44 @@ export const RLSP: FC = () => {
   const fetchNextAssessment = async (
     child_id: number,
     aspect: string,
-    assessment_id: number,
-    user_id: number
+    supervisor_assessment_id: number,
+    supervisor_id: number
   ) => {
+    console.log("child_id", child_id)
+    console.log("supervisor_assessment_id", supervisor_assessment_id)
+    console.log("supervisor_id", supervisor_id)
+    console.log("aspect", aspect)
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem("userToken");
       const response = await fetch(
-        `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-next/${child_id}/${aspect}`,
+        `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-next-supervisor/${child_id}/${aspect}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ assessment_id, user_id }), // ส่ง assessment_id ใน body ของ request
+          body: JSON.stringify({ supervisor_assessment_id, supervisor_id }), 
         }
       );
 
       if (response.ok) {
         const data = await response.json();
         console.log("Fetched next assessment:", data);
-
+        if (data.next_assessment.status === "passed_all") {
+          setAssessmentDetails(null); // ล้างข้อมูล assessment
+          setAssessmentInsert(null); // ล้าง assessmentInsert
         // Update state with the fetched data
-        setUserId({ user_id: data.next_assessment.user_id });
+        } else {
+        setUserId({ supervisor_id: data.next_assessment.supervisor_id });
         setAssessmentDetails(data.next_assessment.details);
         setAssessmentInsert({
-          assessment_id: data.next_assessment.assessment_id,
+          // assessment_id: data.next_assessment.assessment_id,
+          supervisor_assessment_id: data.next_assessment.supervisor_assessment_id
         });
-        setTimeout(() => {
-          setLoading(false);
-        }, 500); // set delay
-
+        console.log("supervisor_assessment_id: ", supervisor_assessment_id)
+      }
         return data;
       } else {
         console.error("Failed to fetch next assessment:", response.status);
@@ -331,168 +344,231 @@ export const RLSP: FC = () => {
       setLoading(false);
     }
   };
+  // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  // api fetch NotpassAssessment
 
+  const NotpassAssessment = async (
+    supervisor_assessment_id: number,
+    // assessmentDetails:assessmentDetails,
+  ) => {
+    console.log("supervisor_assessment_id", supervisor_assessment_id)
+    // setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const response = await fetch(
+        `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-not-passed-supervisor`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ supervisor_assessment_id}), 
+        }
+      );
+
+      if (response.ok) {
+        // const data = await response.json();
+        // console.log("Fetched next assessment:", data);
+        // return data;
+        navigation.navigate("trainingsp", { child, assessmentDetails });
+      } else {
+        console.error("Failed to fetch next assessment:", response.status);
+      }
+    } catch (error) {
+      console.error("Error fetching next assessment:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   // return
 
   return (
-    <ImageBackground
-      source={require("../../assets/background/bg2.png")}
-      style={styles.background}
-    >
-      {/* Top Section */}
-      <View style={styles.topSection}>
-        <LinearGradient
-          key={child.child_id}
-          colors={
-            child.gender === "male"
-              ? ["#fff", "#E7F6FF", "#D6ECFD"] // ไล่สีฟ้าสำหรับเด็กผู้ชาย
-              : ["#fff", "#FFDEE4", "#FFBED6"] // ไล่สีชมพูสำหรับเด็กผู้หญิง
-          }
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={
-            child.gender === "male"
-              ? styles.profileCardBoy
-              : styles.profileCardGirl
-          }
-        >
-          <Image source={{ uri: child.childPic }} style={styles.profileIcon} />
-          <View style={styles.profileInfo}>
-            <View style={styles.detailsName}>
-              <Text style={styles.profileName}>{child.nickName}</Text>
+      <ImageBackground
+        source={require("../../assets/background/bg2.png")}
+        style={styles.background}
+      >
+        {/* Top Section */}
+        <View style={styles.topSection}>
+          <LinearGradient
+            key={child.child_id}
+            colors={
+              child.gender === "male"
+                ? ["#fff", "#E7F6FF", "#D6ECFD"] // ไล่สีฟ้าสำหรับเด็กผู้ชาย
+                : ["#fff", "#FFDEE4", "#FFBED6"] // ไล่สีชมพูสำหรับเด็กผู้หญิง
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={
+              child.gender === "male"
+                ? styles.profileCardBoy
+                : styles.profileCardGirl
+            }
+          >
+            <Image source={{ uri: child.childPic }} style={styles.profileIcon} />
+            <View style={styles.profileInfo}>
+              <View style={styles.detailsName}>
+                <Text style={styles.profileName}>{child.nickName}</Text>
+              </View>
+              <View style={styles.detailsAge}>
+                <Text style={styles.profileAge}>{child.age}</Text>
+              </View>
             </View>
-            <View style={styles.detailsAge}>
-              <Text style={styles.profileAge}>{child.age}</Text>
-            </View>
-          </View>
-        </LinearGradient>
-      </View>
-
-      {/* Mid Section */}
-      <View style={styles.midSection}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.containerSection}>
-            {loading ? (
-              <LoadingScreenBook />
-            ) : error ? (
-              <Text style={styles.errorText}>{error}</Text>
-            ) : (
-              <>
-                {/* assessment header */}
-                <View style={styles.headerTextContainer}>
-                  <Text style={styles.headerText}>Receptive Language (RL)</Text>
-                  <Text style={styles.headerAgeContainer}>
-                    อายุพัฒนาการ:{" "}
-                    {assessmentDetails?.age_range
-                      ? calculateAgeRange(
-                          ...(assessmentDetails.age_range
-                            .split("-")
-                            .map(Number) as [number, number])
-                        )
-                      : "ข้อมูลไม่สมบูรณ์"}
-                  </Text>
-                </View>
-
-                {/* assessment rank */}
-                <View style={styles.assessmentTop}>
-                  <View style={styles.assessmentNumberContainer}>
-                    <Text style={styles.assessmentNumber}>
-                      {assessmentDetails?.assessment_details_id}
+          </LinearGradient>
+        </View>
+  
+        {/* Mid Section */}
+        <View style={styles.midSection}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={styles.containerSection}>
+              {loading ? (
+                <LoadingScreenBook />
+              ) : error ? (
+                <Text style={styles.errorText}>{error}</Text>
+              ) : assessmentDetails ? (
+                <>
+                  {/* assessment header */}
+                  <View style={styles.headerTextContainer}>
+                    <Text style={styles.headerText}>Receptive Language (RL)</Text>
+                    <Text style={styles.headerAgeContainer}>
+                      อายุพัฒนาการ:{" "}
+                      {assessmentDetails?.age_range
+                        ? calculateAgeRange(
+                            ...(assessmentDetails.age_range
+                              .split("-")
+                              .map(Number) as [number, number])
+                          )
+                        : "ข้อมูลไม่สมบูรณ์"}
                     </Text>
                   </View>
-                  <Text style={styles.assessmentTitle}>
-                    {assessmentDetails?.assessment_name ?? "ไม่มีข้อมูล"}
-                  </Text>
-                </View>
-
-                {assessmentDetails?.assessment_image && (
-                  <Image
-                    source={getImageSource(assessmentDetails.assessment_image)}
-                    style={styles.assessmentLogo}
-                  />
-                )}
-
-                {/* assessment device */}
-                {assessmentDetails &&
-                  (assessmentDetails.assessment_device_name !== "none" ||
-                    assessmentDetails.assessment_device_image !== "none" ||
-                    assessmentDetails.assessment_device_detail !== "none") &&
-                  renderAssessmentDevice()}
-
-                {/* assessment how to */}
-                <View style={styles.assessmentHowto}>
-                  <Text style={styles.headerHowto}>วิธีการประเมิน</Text>
-                  <Text style={styles.howtoText}>
-                    {assessmentDetails?.assessment_method ?? "ไม่มีข้อมูล"}
-                  </Text>
-                </View>
-              </>
-            )}
-          </View>
-
-          {/* assessment result */}
-          <View style={styles.assessmentResult}>
-            <View style={styles.headerResultContainer}>
-              <Text style={styles.headerResult}>ผลการประเมิน</Text>
+  
+                  {/* assessment rank */}
+                  <View style={styles.assessmentTop}>
+                    <View style={styles.assessmentNumberContainer}>
+                      <Text style={styles.assessmentNumber}>
+                        {assessmentDetails?.assessment_details_id}
+                      </Text>
+                    </View>
+                    <Text style={styles.assessmentTitle}>
+                      {assessmentDetails?.assessment_name ?? "ไม่มีข้อมูล"}
+                    </Text>
+                  </View>
+  
+                  {assessmentDetails?.assessment_image && (
+                    <Image
+                      source={getImageSource(assessmentDetails.assessment_image)}
+                      style={styles.assessmentLogo}
+                    />
+                  )}
+  
+                  {/* assessment device */}
+                  {assessmentDetails &&
+                    (assessmentDetails.assessment_device_name !== "none" ||
+                      assessmentDetails.assessment_device_image !== "none" ||
+                      assessmentDetails.assessment_device_detail !== "none") &&
+                    renderAssessmentDevice()}
+  
+                  {/* assessment how to */}
+                  <View style={styles.assessmentHowto}>
+                    <Text style={styles.headerHowto}>วิธีการประเมิน</Text>
+                    <Text style={styles.howtoText}>
+                      {assessmentDetails?.assessment_method ?? "ไม่มีข้อมูล"}
+                    </Text>
+                  </View>
+                </>
+              ):(
+                <View style={styles.passAllAssessDetailcontainer}>
+                                <View style={styles.headerPassAllTextContainer}>
+                                  <Text style={styles.headerPassAllText}>Gross Motor (GM)</Text>
+                                </View>
+                                <Text style={styles.titlePassAllText}>คุณได้ทำการประเมินในด้านนี้ครบทุกข้อแล้ว</Text>
+                                <LoadingScreenPassAll />
+                                <Text style={styles.PassAllText}>สามารถทำการประเมินในด้านอื่น ๆ ได้เลยค่ะ/ครับ</Text>
+                              </View>
+              )}
             </View>
-            <Text style={styles.resultText}>
-              {assessmentDetails?.assessment_succession ?? "ไม่มีข้อมูล"}
-            </Text>
-
-            <View style={styles.resultButtonCantainer}>
-              <Pressable
-                style={styles.yesButton}
-                onPress={() => {
-                  if (assessmentInsert) {
-                    console.log(
-                      "Calling fetchNextAssessment with assessmentInsert_id:",
-                      assessmentInsert.assessment_id
-                    );
-                    fetchNextAssessment(
-                      child.child_id,
-                      "RL",
-                      assessmentInsert.assessment_id,
-                      userId?.user_id ?? 0
-                    );
-                  } else {
-                    console.log("assessmentInsert is null or undefined");
-                  }
-                }}
-              >
-                <Text>ได้</Text>
-              </Pressable>
-              <Pressable
-                style={styles.noButton}
-                onPress={() =>
-                  assessmentDetails && whenGotoTraining(assessmentDetails)
-                }
-              >
-                <Text>ไม่ได้</Text>
-              </Pressable>
+  
+            {/* assessment result */}
+            {loading ? (
+              <></>
+            ) :
+              assessmentDetails ? (
+            <View style={styles.assessmentResult}>
+              <View style={styles.headerResultContainer}>
+                <Text style={styles.headerResult}>ผลการประเมิน</Text>
+              </View>
+              <Text style={styles.resultText}>
+                {assessmentDetails?.assessment_succession ?? "ไม่มีข้อมูล"}
+              </Text>
+  
+              <View style={styles.resultButtonCantainer}>
+                <Pressable
+                  style={styles.yesButton}
+                  onPress={() => {
+                    if (assessmentInsert) {
+                      console.log(
+                        "Calling fetchNextAssessment with assessmentInsert_id:",
+                        assessmentInsert.supervisor_assessment_id
+                      );
+                      fetchNextAssessment(
+                        child.child_id,
+                        "RL",
+                        assessmentInsert.supervisor_assessment_id,
+                        userId?.supervisor_id ?? 0
+                      );
+                    } else {
+                      console.log("assessmentInsert is null or undefined");
+                    }
+                  }}
+                >
+                  <Text>ได้</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.noButton}
+                  onPress={() =>
+                    {if (assessmentInsert) {
+                      console.log(
+                        "Calling fetchNextAssessment with assessmentInsert_id:",
+                        assessmentInsert.supervisor_assessment_id
+                      );
+                      NotpassAssessment(
+                        
+                        assessmentInsert.supervisor_assessment_id,
+                       
+                      );
+                    } else {
+                      console.log("assessmentInsert is null or undefined");
+                    }
+                  }}
+                >
+                  <Text>ไม่ได้</Text>
+                </Pressable>
+              </View>
             </View>
-          </View>
-        </ScrollView>
-      </View>
-
-      {/* Bottom Section */}
-      <View style={styles.bottomSection}>
-        <View style={styles.buttonContainer}>
-          <Pressable style={styles.backButton} onPress={goBack}>
-            <Image
-              source={require("../../assets/icons/back.png")}
-              style={styles.backIcon}
-            />
-          </Pressable>
-          <Pressable style={styles.sucessButton} onPress={whenGotoHomeSP}>
-            <Text style={styles.sucessText}>เสร็จสิ้น</Text>
-          </Pressable>
+              ):( <></>)}
+          </ScrollView>
         </View>
-      </View>
-    </ImageBackground>
-  );
-};
+  
+        {/* Bottom Section */}
+        <View style={styles.bottomSection}>
+          <View style={styles.buttonContainer}>
+            <Pressable style={styles.backButton} onPress={goBack}>
+              <Image
+                source={require("../../assets/icons/back.png")}
+                style={styles.backIcon}
+              />
+            </Pressable>
+            <Pressable style={styles.sucessButton} onPress={whenGotoHomeSP}>
+              <Text style={styles.sucessText}>เสร็จสิ้น</Text>
+            </Pressable>
+          </View>
+        </View>
+      </ImageBackground>
+    );
+  };
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -504,7 +580,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   ScrollView: {
-    borderWidth: 2,
+    // borderWidth: 2,
   },
 
   topSection: {
@@ -872,7 +948,49 @@ const styles = StyleSheet.create({
     width: "45%",
     alignItems: "center",
   },
+  //passAll
+  headerPassAllTextContainer: {
+    width: "100%",
+    height: 50,
+    borderRadius: 0,
+    backgroundColor: "#5F5F5F",
+    alignItems: "center", // แกน x
+    justifyContent: "center", // แกน y
+  },
 
+  headerPassAllText: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+
+  titlePassAllText: {
+    marginTop: 20,
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  PassAllText: {
+    bottom: 10,
+    fontSize: 14,
+    //fontWeight: "bold",
+    textAlign: "center",
+  },
+  passAllAssessDetailcontainer: {
+    alignContent: "center",
+    width: "100%",
+    height: "auto",
+    backgroundColor: "white",
+    //borderWidth: 1,
+  },
+  passAllResultcontainer: {
+    marginTop: 10,
+    width: "100%",
+    height: "20%",
+    backgroundColor: "white",
+    //borderWidth: 1,
+  },
   // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   buttonContainer: {

@@ -17,9 +17,8 @@ import {
   useFocusEffect,
 } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { LoadingScreenAdvice, LoadingScreenBook, LoadingScreenPassAll, LoadingScreenSearchfile } from "../LoadingScreen";
 import { Child } from "../page/HomePR";
-import { LoadingScreenBook } from "../LoadingScreen";
 import { LinearGradient } from "expo-linear-gradient";
 
 type GMRouteProp = RouteProp<{ assessment: { child: Child } }, "assessment">;
@@ -38,7 +37,7 @@ export interface AssessmentDetails {
 }
 
 export interface AssessmentInsert {
-  assessment_id: number;
+  // assessment_id: number;
   supervisor_assessment_id: number;
 }
 
@@ -110,7 +109,7 @@ export const GMSP: FC = () => {
             setAssessmentDetails(data.data.details);
             // console.log("AssessmentDetails after set:", data.data.details);
             setAssessmentInsert({
-              assessment_id: data.data.assessment_id,
+              // assessment_id: data.data.assessment_id,
               supervisor_assessment_id: data.data.supervisor_assessment_id
             });
             console.log("supervisor_assessment_id after set:", data.data.supervisor_assessment_id)
@@ -144,7 +143,7 @@ export const GMSP: FC = () => {
   // ตรวจสอบค่า assessmentInsert.assessment_id
   useEffect(() => {
     if (assessmentInsert) {
-      console.log("Current assessment_id:", assessmentInsert.supervisor_assessment_id);
+      console.log("Current supervisor_assessment_id:", assessmentInsert.supervisor_assessment_id);
     } else {
       console.log("assessmentInsert is null or undefined");
     }
@@ -290,6 +289,10 @@ export const GMSP: FC = () => {
     supervisor_assessment_id: number,
     supervisor_id: number
   ) => {
+    console.log("child_id", child_id)
+    console.log("supervisor_assessment_id", supervisor_assessment_id)
+    console.log("supervisor_id", supervisor_id)
+    console.log("aspect", aspect)
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem("userToken");
@@ -308,18 +311,19 @@ export const GMSP: FC = () => {
       if (response.ok) {
         const data = await response.json();
         console.log("Fetched next assessment:", data);
-
+        if (data.next_assessment.status === "passed_all") {
+          setAssessmentDetails(null); // ล้างข้อมูล assessment
+          setAssessmentInsert(null); // ล้าง assessmentInsert
         // Update state with the fetched data
+        } else {
         setUserId({ supervisor_id: data.next_assessment.supervisor_id });
         setAssessmentDetails(data.next_assessment.details);
         setAssessmentInsert({
-          assessment_id: data.next_assessment.assessment_id,
+          // assessment_id: data.next_assessment.assessment_id,
           supervisor_assessment_id: data.next_assessment.supervisor_assessment_id
         });
-        setTimeout(() => {
-          setLoading(false);
-        }, 250); // set delay
-
+        console.log("supervisor_assessment_id: ", supervisor_assessment_id)
+      }
         return data;
       } else {
         console.error("Failed to fetch next assessment:", response.status);
@@ -332,6 +336,44 @@ export const GMSP: FC = () => {
   };
 
   // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  // api fetch NotpassAssessment
+
+  const NotpassAssessment = async (
+    supervisor_assessment_id: number,
+    // assessmentDetails:assessmentDetails,
+  ) => {
+    console.log("supervisor_assessment_id", supervisor_assessment_id)
+    // setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const response = await fetch(
+        `https://senior-test-deploy-production-1362.up.railway.app/api/assessments/assessments-not-passed-supervisor`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ supervisor_assessment_id}), 
+        }
+      );
+
+      if (response.ok) {
+        // const data = await response.json();
+        // console.log("Fetched next assessment:", data);
+        // return data;
+        navigation.navigate("trainingsp", { child, assessmentDetails });
+      } else {
+        console.error("Failed to fetch next assessment:", response.status);
+      }
+    } catch (error) {
+      console.error("Error fetching next assessment:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
   // return
 
@@ -370,7 +412,6 @@ export const GMSP: FC = () => {
       </View>
 
       {/* Mid Section */}
-      
       <View style={styles.midSection}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.containerSection}>
@@ -378,7 +419,7 @@ export const GMSP: FC = () => {
               <LoadingScreenBook />
             ) : error ? (
               <Text style={styles.errorText}>{error}</Text>
-            ) : (
+            ) : assessmentDetails ? (
               <>
                 {/* assessment header */}
                 <View style={styles.headerTextContainer}>
@@ -429,50 +470,79 @@ export const GMSP: FC = () => {
                   </Text>
                 </View>
               </>
+            ) : (
+              <View style={styles.passAllAssessDetailcontainer}>
+                <View style={styles.headerPassAllTextContainer}>
+                  <Text style={styles.headerPassAllText}>Gross Motor (GM)</Text>
+                </View>
+                <Text style={styles.titlePassAllText}>
+                  คุณได้ทำการประเมินในด้านนี้ครบทุกข้อแล้ว
+                </Text>
+                <LoadingScreenPassAll />
+                <Text style={styles.PassAllText}>
+                  สามารถทำการประเมินในด้านอื่น ๆ ได้เลยค่ะ/ครับ
+                </Text>
+              </View>
             )}
           </View>
 
           {/* assessment result */}
-          <View style={styles.assessmentResult}>
-            <View style={styles.headerResultContainer}>
-              <Text style={styles.headerResult}>ผลการประเมิน</Text>
-            </View>
-            <Text style={styles.resultText}>
-              {assessmentDetails?.assessment_succession ?? "ไม่มีข้อมูล"}
-            </Text>
+          {loading ? (
+            <></>
+          ) : assessmentDetails ? (
+            <View style={styles.assessmentResult}>
+              <View style={styles.headerResultContainer}>
+                <Text style={styles.headerResult}>ผลการประเมิน</Text>
+              </View>
+              <Text style={styles.resultText}>
+                {assessmentDetails?.assessment_succession ?? "ไม่มีข้อมูล"}
+              </Text>
 
-            <View style={styles.resultButtonCantainer}>
-              <Pressable
-                style={styles.yesButton}
-                onPress={() => {
-                  if (assessmentInsert) {
-                    console.log(
-                      "Calling fetchNextAssessment with assessmentInsert_id:",
-                      assessmentInsert.assessment_id
-                    );
-                    fetchNextAssessment(
-                      child.child_id,
-                      "GM",
-                      assessmentInsert.supervisor_assessment_id,
-                      userId?.supervisor_id ?? 0
-                    );
-                  } else {
-                    console.log("assessmentInsert is null or undefined");
-                  }
-                }}
-              >
-                <Text>ได้</Text>
-              </Pressable>
-              <Pressable
-                style={styles.noButton}
-                onPress={() =>
-                  assessmentDetails && whenGotoTraining(assessmentDetails)
-                }
-              >
-                <Text>ไม่ได้</Text>
-              </Pressable>
+              <View style={styles.resultButtonCantainer}>
+                <Pressable
+                  style={styles.yesButton}
+                  onPress={() => {
+                    if (assessmentInsert) {
+                      console.log(
+                        "Calling fetchNextAssessment with assessmentInsert_id:",
+                        assessmentInsert.supervisor_assessment_id
+                      );
+                      fetchNextAssessment(
+                        child.child_id,
+                        "GM",
+                        assessmentInsert.supervisor_assessment_id,
+                        userId?.supervisor_id ?? 0
+                      );
+                    } else {
+                      console.log("assessmentInsert is null or undefined");
+                    }
+                  }}
+                >
+                  <Text>ได้</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.noButton}
+                  onPress={() => {
+                    if (assessmentInsert) {
+                      console.log(
+                        "Calling fetchNextAssessment with assessmentInsert_id:",
+                        assessmentInsert.supervisor_assessment_id
+                      );
+                      NotpassAssessment(
+                        assessmentInsert.supervisor_assessment_id
+                      );
+                    } else {
+                      console.log("assessmentInsert is null or undefined");
+                    }
+                  }}
+                >
+                  <Text>ไม่ได้</Text>
+                </Pressable>
+              </View>
             </View>
-          </View>
+          ) : (
+            <></>
+          )}
         </ScrollView>
       </View>
 
@@ -872,7 +942,49 @@ const styles = StyleSheet.create({
     width: "45%",
     alignItems: "center",
   },
+  //passAll
+  headerPassAllTextContainer: {
+    width: "100%",
+    height: 50,
+    borderRadius: 0,
+    backgroundColor: "#5F5F5F",
+    alignItems: "center", // แกน x
+    justifyContent: "center", // แกน y
+  },
 
+  headerPassAllText: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+
+  titlePassAllText: {
+    marginTop: 20,
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  PassAllText: {
+    bottom: 10,
+    fontSize: 14,
+    //fontWeight: "bold",
+    textAlign: "center",
+  },
+  passAllAssessDetailcontainer: {
+    alignContent: "center",
+    width: "100%",
+    height: "auto",
+    backgroundColor: "white",
+    //borderWidth: 1,
+  },
+  passAllResultcontainer: {
+    marginTop: 10,
+    width: "100%",
+    height: "20%",
+    backgroundColor: "white",
+    //borderWidth: 1,
+  },
   // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   buttonContainer: {

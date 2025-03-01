@@ -25,6 +25,7 @@ import {
 } from "../../app/usePushNotifications";
 
 import { LoadingScreenBaby } from "../LoadingScreen";
+import LottieView from "lottie-react-native";
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -54,6 +55,7 @@ export interface AssessmentDetails {
   assessment_succession: string;
   assessmentInsert_id: number;
   child_id: number;
+  status: string;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -147,7 +149,7 @@ export const HomePR: FC = () => {
                   };
                 }
               );
-              // setChildren(updatedChildren);
+
               setTimeout(() => {
                 setChildren(updatedChildren);
                 setLoading(false);
@@ -157,7 +159,6 @@ export const HomePR: FC = () => {
                 (child: any) => child.assessments || []
               );
               setAssessmentDetails(allAssessments.flat());
-              // console.log("Assessments fetched:", allAssessments);
             } else {
               console.log("No children found.");
               setChildren([]);
@@ -191,73 +192,50 @@ export const HomePR: FC = () => {
   const renderAssessmentState = (childId: number) => {
     if (!assessmentDetails) {
       console.log("assessmentDetails is null or undefined");
-      return null; // Return null if assessmentDetails is not available
+      return null;
     }
-    // console.log("childId:", childId);
-    // console.log("assessmentDetails:", assessmentDetails);
 
-    // Filter the assessment details by childId to ensure we only display relevant data
     const childAssessmentDetails = children
       .filter((child) => child.child_id === childId)
       .flatMap((child) =>
         child.assessments.filter((detail) => detail.aspect !== "none")
       );
 
-    // If no assessment details for this child, return null (nothing to render)
     if (childAssessmentDetails.length === 0) {
       return null;
     }
 
     return (
       <View style={styles.stateContainer}>
-        {/* Loop through each aspect and filter corresponding details */}
         {["GM", "FM", "RL", "EL", "PS"].map((aspect) => {
           const filteredDetails = childAssessmentDetails.filter(
             (detail) => detail.aspect === aspect && detail.aspect !== "none"
           );
 
-          // If there are no details for this aspect, skip rendering
           if (filteredDetails.length === 0) return null;
 
-          // Select the correct icon based on the aspect
-          /*  let aspectImage;
-          switch (aspect) {
-            case "GM":
-              aspectImage = require("../../assets/icons/stateGM.png");
-              break;
-            case "FM":
-              aspectImage = require("../../assets/icons/stateFM.png");
-              break;
-            case "RL":
-              aspectImage = require("../../assets/icons/stateRL.png");
-              break;
-            case "EL":
-              aspectImage = require("../../assets/icons/stateEL.png");
-              break;
-            case "PS":
-              aspectImage = require("../../assets/icons/statePS.png");
-              break;
-            default:
-              aspectImage = require("../../assets/icons/childIcon.png"); // Fallback image
-          }
- */
           return (
             <View key={aspect}>
-              {/* Render each detail for this aspect */}
               {filteredDetails.map((detail) => (
                 <View
                   key={detail.assessment_details_id}
                   style={styles.assessmentsState}
                 >
-                  {/* Render the icon for the current aspect */}
-                  {/* <Image source={aspectImage} style={styles.stateIcon} /> */}
                   <View style={styles.aspectName}>
                     <Text style={styles.textaspectName}>{detail.aspect}</Text>
                   </View>
+
                   <View style={styles.stateNumber}>
-                    <Text style={styles.textState}>
-                      {detail.assessment_details_id}
-                    </Text>
+                    {detail.status === "passed_all" ? (
+                      <LottieView
+                        source={require("../../assets/logo/lottie/checkmark.json")}
+                        style={styles.checkmarkIcon}
+                      />
+                    ) : (
+                      <Text style={styles.textState}>
+                        {detail.assessment_details_id}
+                      </Text>
+                    )}
                   </View>
                 </View>
               ))}
@@ -275,8 +253,8 @@ export const HomePR: FC = () => {
     navigation.navigate("addchild");
   };
 
-  const whenGotoDetail = (id: number) => {
-    navigation.navigate("detail", { id });
+  const whenGotoDetail = (child: Child, assessment: AssessmentDetails[]) => {
+    navigation.navigate("childdetail", { child, assessment });
   };
 
   const whenGotoAssessment = (child: Child) => {
@@ -332,7 +310,7 @@ export const HomePR: FC = () => {
           <View style={styles.midSection}>
             <ScrollView
               showsVerticalScrollIndicator={false}
-              // style={styles.ScrollView}
+              style={styles.ScrollView}
             >
               {children.length === 0 ? (
                 <View style={styles.howtousesection}></View>
@@ -387,7 +365,14 @@ export const HomePR: FC = () => {
                             ? styles.detailsButtonBoy
                             : styles.detailsButtonGirl
                         }
-                        //onPress={() => whenGotoDetail(child.id)}
+                        onPress={() =>
+                          whenGotoDetail(
+                            child,
+                            assessmentDetails.filter(
+                              (a) => a.child_id === child.child_id
+                            )
+                          )
+                        }
                       >
                         <Text style={styles.detailsText}>ดูรายละเอียด</Text>
                       </Pressable>
@@ -397,12 +382,6 @@ export const HomePR: FC = () => {
               )}
             </ScrollView>
           </View>
-          {/* <Pressable style={styles.addButton} onPress={whenGotoAddChild}>
-            <Image
-              source={require("../../assets/icons/add.png")}
-              style={styles.addIcon}
-            />
-          </Pressable> */}
         </View>
       </ImageBackground>
     </SafeAreaProvider>
@@ -425,7 +404,7 @@ const styles = StyleSheet.create({
   },
   ScrollView: {
     width: "100%",
-    borderWidth: 2,
+    //borderWidth: 2,
     borderRadius: 30,
   },
   addchildButton: {
@@ -434,7 +413,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 50,
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: "#646464",
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.2,
     shadowRadius: 15,
@@ -444,9 +423,9 @@ const styles = StyleSheet.create({
   addchildIcon: {
     width: 20,
     height: 30,
-    shadowColor: "#CEC9FF",
-    shadowOffset: { width: 5, height: 5 },
-    shadowOpacity: 1,
+    shadowColor: "#848484",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
     shadowRadius: 15,
     elevation: 5,
   },
@@ -475,7 +454,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginLeft: "auto",
     marginRight: "auto",
-    shadowColor: "#000",
+    shadowColor: "#848484",
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.2,
     shadowRadius: 15,
@@ -493,7 +472,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginLeft: "auto",
     marginRight: "auto",
-    shadowColor: "#000",
+    shadowColor: "#848484",
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.2,
     shadowRadius: 15,
@@ -595,66 +574,63 @@ const styles = StyleSheet.create({
   stateContainer: {
     flexDirection: "row",
     flex: 2,
-    //justifyContent: "space-between", // Add space between elements
+    //justifyContent: "space-evenly", // กระจายกล่องให้มีระยะห่างเท่ากัน รวมขอบซ้าย-ขวา
     alignItems: "center",
     width: "100%",
     height: "40%",
+    //borderWidth: 1,
+    paddingHorizontal: 10, // เพิ่ม padding ซ้าย-ขวาให้บาลานซ์ขึ้น
   },
+
   assessmentsState: {
-    backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
-    width: 55,
+    width: 60,
     height: "auto",
     borderRadius: 15,
-    //marginVertical:5,
     marginTop: 10,
-
     //borderWidth: 1,
-    marginHorizontal: 5.5,
-    shadowColor: "#000",
+    shadowColor: "#848484",
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.2,
-    shadowRadius: 15,
+    shadowRadius: 10,
     elevation: 5,
+    marginLeft: 1.5,
   },
+
   textState: {
     fontSize: 16,
     color: "#000000",
     textAlign: "center",
+    marginLeft: "auto",
+    marginRight: "auto",
   },
-  /* stateIcon: {
-    width: 60,
-    height: 35,
-    borderRadius: 10,
-  }, */
+
   aspectName: {
-    color: "#fff",
     textAlign: "center",
     width: 55,
     height: 28,
     borderTopRightRadius: 10,
     borderTopLeftRadius: 10,
-    borderBottomRightRadius: 0,
-    borderBottomLeftRadius: 0,
     backgroundColor: "#8DD9BD",
     justifyContent: "center",
+    alignItems: "center", // ให้ text อยู่กึ่งกลาง
   },
+
   textaspectName: {
     fontSize: 16,
     color: "#fff",
     textAlign: "center",
   },
+
   stateNumber: {
     width: 55,
     height: 30,
-    borderTopRightRadius: 0,
-    borderTopLeftRadius: 0,
     borderBottomRightRadius: 10,
     borderBottomLeftRadius: 10,
     backgroundColor: "#FFF",
     justifyContent: "center",
-    // borderWidth: 1,
+    alignItems: "center", // ให้ text อยู่กึ่งกลาง
   },
 
   // ---------------------------------------------------------------------------------------------
@@ -811,5 +787,9 @@ const styles = StyleSheet.create({
   TextIntro: {
     fontSize: 16,
     fontWeight: "bold",
+  },
+  checkmarkIcon: {
+    width: 24,
+    height: 24,
   },
 });

@@ -43,14 +43,12 @@ type AssessmentData = {
     aspect: string;
     passed_count: number;
     not_passed_count: number;
-  
   }[];
   summary: {
     passed_count: number;
     not_passed_count: number;
   };
 };
-
 
 export interface Room {
   rooms_id: number;
@@ -88,7 +86,9 @@ export const HomeSP: FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const [loading, setLoading] = useState<boolean>(true);
   const [rooms, setRoom] = useState<Room[]>([]);
-  const [dashboardData, setDashboardData] = useState<AssessmentData | null>(null);
+  const [dashboardData, setDashboardData] = useState<AssessmentData | null>(
+    null
+  );
 
   const { expoPushToken } = usePushNotifications();
   const colorGradients: { [key: string]: [string, string, ...string[]] } = {
@@ -102,8 +102,7 @@ export const HomeSP: FC = () => {
   };
   const defaultGradient: [string, string] = ["#c5e5fc", "#ffffff"];
   const screenWidth = Dimensions.get("window").width;
-  
-  
+
   // useEffect
   useFocusEffect(
     React.useCallback(() => {
@@ -232,183 +231,247 @@ export const HomeSP: FC = () => {
     outputRange: ["0deg", "45deg"], // หมุน 45 องศา
   });
 
-  //ตรวจสอบว่ามีข้อมูลหรือไม่
-  if (!dashboardData || !dashboardData.data || dashboardData.data.length === 0) {
-    return <Text>ไม่มีข้อมูลการประเมิน</Text>;
-  }
-
   // ดึงข้อมูลด้านพัฒนาและแยกค่าผ่าน/ไม่ผ่าน
   const labels = dashboardData?.data?.map((item) => item.aspect) ?? [];
-const passedData = dashboardData?.data?.map((item) => Number(item.passed_count) || 0) ?? [];
-const notPassedData = dashboardData?.data?.map((item) => Number(item.not_passed_count) || 0) ?? [];
-const totalPassed = dashboardData?.data?.reduce((sum, item) => sum + (Number(item.passed_count) || 0), 0);
-const totalNotPassed = dashboardData?.data?.reduce((sum, item) => sum + (Number(item.not_passed_count) || 0), 0);
+  const passedCounts =
+    dashboardData?.data?.map((item) => Number(item.passed_count) || 0) ?? [];
+  const notPassedCounts =
+    dashboardData?.data?.map((item) => Number(item.not_passed_count) || 0) ??
+    [];
+  const totalPassed = dashboardData?.data?.reduce(
+    (sum, item) => sum + (Number(item.passed_count) || 0),
+    0
+  );
+  const totalNotPassed = dashboardData?.data?.reduce(
+    (sum, item) => sum + (Number(item.not_passed_count) || 0),
+    0
+  );
   const barData = {
-    labels: labels, // ["GM", "FM", "RL", ...]
+    labels: labels,
     datasets: [
       {
-        data: passedData // จำนวนเด็กที่ผ่าน
+        data: passedCounts, // ✅ จำนวนเด็กที่ผ่าน
+        color: (opacity = 1) => `rgba(72, 191, 227, ${opacity})`, // สีฟ้า
       },
       {
-        data: notPassedData // จำนวนเด็กที่ไม่ผ่าน
-      }
-    ]
+        data: notPassedCounts, // ✅ จำนวนเด็กที่ไม่ผ่าน
+        color: (opacity = 1) => `rgba(255, 107, 107, ${opacity})`, // สีแดง
+      },
+    ],
   };
-  
+
   const pieData = [
-    { name: "ผ่าน", population: totalPassed, color: "#72C3DC", legendFontColor: "#000", legendFontSize: 14 },
-    { name: "ไม่ผ่าน", population: totalNotPassed, color: "#FF6B6B", legendFontColor: "#000", legendFontSize: 14 }
+    {
+      name: "ผ่าน",
+      population: totalPassed,
+      color: "#72C3DC",
+      legendFontColor: "#000",
+      legendFontSize: 14,
+    },
+    {
+      name: "ไม่ผ่าน",
+      population: totalNotPassed,
+      color: "#FF6B6B",
+      legendFontColor: "#000",
+      legendFontSize: 14,
+    },
   ];
 
-  // if (loading) {
-  //   return <LoadingScreenBaby />;
-  // }
+  if (loading) {
+    return <LoadingScreenBaby />;
+  }
 
   return (
-    <View style={styles.container}>
-      {/* Top Section */}
-      <View style={styles.topSection}>
-        <ScrollView   horizontal={true} showsHorizontalScrollIndicator={false}>
-          <View style={styles.roomInfo}>
-            <ScrollView
-              horizontal={true} // เปิดการเลื่อนแนวนอน
-              style={styles.ScrollView}
-              contentContainerStyle={styles.scrollContent}
-              showsHorizontalScrollIndicator={false}
-            >
-              {rooms.length === 0 ? (
-                <View style={styles.profileCardIntro}>
-                  <Image
-                    source={require("../../assets/icons/User_Icon.png")}
-                    style={styles.profileIcon}
-                  />
-                  <View style={styles.profileInfo}>
-                    <View style={styles.IntroContainer}>
-                      <Text style={styles.TextIntro}>กรุณาเพิ่มข้อมูลเด็ก</Text>
-                    </View>
-                    <Pressable style={styles.detailButtonIntro}>
-                      <Text style={styles.detailTextIntro}>
-                        เพิ่มข้อมูลเด็กที่นี่
-                      </Text>
-                    </Pressable>
-                  </View>
-                </View>
-              ) : (
-                rooms.map((rooms) => (
-                  <Pressable
-                    key={rooms.rooms_id}
-                    onPress={() => whengotoChooseChildSP(rooms)}
-                  >
-                    <LinearGradient
-                      colors={colorGradients[rooms.colors] ?? defaultGradient} // ใช้ Gradient
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.CardRoom}
-                    >
-                      <Image
-                        source={
-                          rooms.roomsPic
-                            ? { uri: rooms.roomsPic }
-                            : require("../../assets/icons/User_Icon.png")
-                        }
-                        style={styles.profileIcon}
-                      />
-                      <View style={styles.profileInfo}>
-                        <View style={styles.detailsName}>
-                          <Text style={styles.profileName}>
-                            {rooms.rooms_name}
-                          </Text>
-                        </View>
-                        <View style={styles.detailsAge}>
-                          <Text style={styles.profileAge}>
-                            {rooms.childs_count}
-                          </Text>
-                        </View>
+    <ScrollView
+      style={styles.scrollviewALL}
+      contentContainerStyle={{ flexGrow: 1, paddingBottom: 50 }}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.container}>
+        {/* Top Section */}
+        <View style={styles.topSection}>
+          <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+            <View style={styles.roomInfo}>
+              <ScrollView
+                horizontal={true} // เปิดการเลื่อนแนวนอน
+                style={styles.ScrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsHorizontalScrollIndicator={false}
+              >
+                {rooms.length === 0 ? (
+                  <View style={styles.profileCardIntro}>
+                    <Image
+                      source={require("../../assets/icons/User_Icon.png")}
+                      style={styles.profileIcon}
+                    />
+                    <View style={styles.profileInfo}>
+                      <View style={styles.IntroContainer}>
+                        <Text style={styles.TextIntro}>
+                          กรุณาเพิ่มข้อมูลเด็ก
+                        </Text>
                       </View>
-                    </LinearGradient>
-                  </Pressable>
-                ))
-              )}
-            </ScrollView>
+                      <Pressable style={styles.detailButtonIntro}>
+                        <Text style={styles.detailTextIntro}>
+                          เพิ่มข้อมูลเด็กที่นี่
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                ) : (
+                  rooms.map((rooms) => (
+                    <Pressable
+                      key={rooms.rooms_id}
+                      onPress={() => whengotoChooseChildSP(rooms)}
+                    >
+                      <LinearGradient
+                        colors={colorGradients[rooms.colors] ?? defaultGradient} // ใช้ Gradient
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.CardRoom}
+                      >
+                        <Image
+                          source={
+                            rooms.roomsPic
+                              ? { uri: rooms.roomsPic }
+                              : require("../../assets/icons/User_Icon.png")
+                          }
+                          style={styles.profileIcon}
+                        />
+                        <View style={styles.profileInfo}>
+                          <View style={styles.detailsName}>
+                            <Text style={styles.profileName}>
+                              {rooms.rooms_name}
+                            </Text>
+                          </View>
+                          <View style={styles.detailsAge}>
+                            <Text style={styles.profileAge}>
+                              {rooms.childs_count}
+                            </Text>
+                          </View>
+                        </View>
+                      </LinearGradient>
+                    </Pressable>
+                  ))
+                )}
+              </ScrollView>
+            </View>
+          </ScrollView>
+        </View>
+        <View style={styles.addContainer}>
+          {/* ไอคอนที่ 2 */}
+
+          <View>
+            <TouchableOpacity onPress={whenGotoAddroom}>
+              <LinearGradient
+                colors={["#F5E5FF", "#E1D7FF", "#CEC9FF"]}
+                locations={[0, 0.5, 1]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.addButton}
+              >
+                <Image
+                  source={require("../../assets/icons/group.png")}
+                  style={styles.icon}
+                />
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
-        </ScrollView>
-      </View>
-      <View style={styles.addContainer}>
-        {/* ไอคอนที่ 2 */}
-        <View>
-          <TouchableOpacity onPress={whenGotoAddroom}>
+        </View>
+
+        {/* Middle Section */}
+        <View style={styles.middleSection}>
+          <TouchableOpacity onPress={whenGotoChooseRoom}>
             <LinearGradient
-              colors={["#F5E5FF", "#E1D7FF", "#CEC9FF"]}
+              colors={["#FFFFFF", "#E6FFF0", "#DCF5F0"]}
               locations={[0, 0.5, 1]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.addButton}
+              style={styles.evaluateButton}
             >
               <Image
-                source={require("../../assets/icons/group.png")}
-                style={styles.icon}
+                source={require("../../assets/icons/assessmentSP.png")}
+                style={styles.asessmentIcon}
               />
+              <Text style={styles.evaluateText}>เริ่มการประเมิน</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Middle Section */}
-      <View style={styles.middleSection}>
-        <TouchableOpacity onPress={whenGotoChooseRoom}>
-          <LinearGradient
-            colors={["#FFFFFF", "#E6FFF0", "#DCF5F0"]}
-            locations={[0, 0.5, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.evaluateButton}
-          >
-            <Image
-              source={require("../../assets/icons/assessmentSP.png")}
-              style={styles.asessmentIcon}
+        {/* Bottom Section */}
+        <View
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: 10,
+            padding: 20,
+            margin: 10,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3,
+            elevation: 4,
+            maxHeight: 500,
+          }}
+        >
+          <View style={styles.graphContainer}>
+            <TouchableOpacity
+              style={styles.graphButton}
+              onPress={() => navigation.navigate("GraphDetailScreen")}
+            ></TouchableOpacity>
+            {/* กราฟ BarChart */}
+            <BarChart
+              data={{
+                labels: labels, // แกน X เป็นด้านพัฒนาการ
+                datasets: [
+                  {
+                    data: labels.map(
+                      (_, index) => passedCounts[index] + notPassedCounts[index]
+                    ), // ✅ จำนวนที่ประเมิน = ผ่าน + ไม่ผ่าน
+                  },
+                  {
+                    data: notPassedCounts, // ✅ จำนวนเด็กที่ไม่ผ่าน
+                    color: (opacity = 1) => `rgba(255, 107, 107, ${opacity})`, // สีแดง
+                  },
+                ],
+              }}
+              width={screenWidth - 100} // ✅ ปรับให้เล็กลง
+              height={180} // ✅ ลดความสูงของ BarChart
+              yAxisLabel=""
+              yAxisSuffix="" // ✅ แก้ไข Error โดยเพิ่ม yAxisSuffix
+              yAxisInterval={4}
+              chartConfig={{
+                backgroundGradientFrom: "#f0f0f0",
+                backgroundGradientTo: "#f0f0f0",
+                decimalPlaces: 0,
+                color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                barPercentage: 0.8, // ✅ ปรับให้แท่งกราฟแคบลง (0.8 = 80% ของพื้นที่)
+              }}
+              fromZero
+              showBarTops={true}
+              showValuesOnTopOfBars
             />
-            <Text style={styles.evaluateText}>เริ่มการประเมิน</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+          </View>
+
+          {/* Pie Chart */}
+          <View style={styles.pieChartContainer}>
+          <PieChart
+            data={pieData}
+            width={screenWidth - 40}
+            height={180}
+            chartConfig={{
+              backgroundGradientFrom: "#f0f0f0",
+              backgroundGradientTo: "#f0f0f0",
+              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            }}
+            accessor={"population"}
+            backgroundColor={"transparent"}
+            paddingLeft={"15"}
+            absolute
+          />
+          </View>
+        </View>
       </View>
-
-      {/* Bottom Section */}
-      <View style={styles.graphContainer}>
-    <Text>จำนวนเด็กที่ผ่านและไม่ผ่านการประเมิน</Text>
-    
-    <BarChart
-      data={barData}
-      width={screenWidth - 40}
-      height={220}
-      yAxisLabel="คน "
-      yAxisSuffix=""
-      chartConfig={{
-        backgroundGradientFrom: "#FFFFFF",
-        backgroundGradientTo: "#FFFFFF",
-        color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-        barPercentage: 0.5
-      }}
-      fromZero
-    />
-  </View>
-
-    {/* Pie Chart */}
-    <PieChart
-    data={pieData}
-    width={screenWidth - 40}
-    height={220}
-    chartConfig={{
-      backgroundGradientFrom: "#FFFFFF",
-      backgroundGradientTo: "#FFFFFF",
-      color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`
-    }}
-    accessor={"population"}
-    backgroundColor={"transparent"}
-    paddingLeft={"15"}
-    absolute
-  />
-  </View>
-    
+    </ScrollView>
   );
 };
 
@@ -419,6 +482,11 @@ const styles = StyleSheet.create({
     paddingTop: 50,
 
     //marginTop: 45, //กรอบสีขาว
+  },
+  scrollviewALL: {
+    flex: 1,
+    backgroundColor: "#F0F8FF",
+    maxHeight: "95%",
   },
   topSection: {
     flexDirection: "row",
@@ -449,7 +517,6 @@ const styles = StyleSheet.create({
     elevation: 6,
     width: "100%",
     height: "100%",
-    
   },
   icon: {
     width: 50,
@@ -529,25 +596,40 @@ const styles = StyleSheet.create({
     marginBottom: 100,
   },
   graphContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: "#f0f0f0",
+    justifyContent: "center",
     borderRadius: 10,
-    padding: 20,
-    margin: 10,
+    height: "55%",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 4,
+    
   },
   graphImage: {
     width: "100%",
     height: "auto",
   },
+  graphButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "#4CAF50", // สีเขียว
+    padding: 8,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
+  },
   pieChartContainer: {
     width: "100%",
-    height: "50%",
+    height: "40%",
     backgroundColor: "#ffffff",
-    top: 5,
+    marginTop:30,
+    borderWidth:1,
     borderRadius: 10,
   },
   pieChartImage: {

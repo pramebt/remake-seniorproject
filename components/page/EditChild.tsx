@@ -1,4 +1,4 @@
-import React, { FC, useState } from "react";
+import React, { FC, useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,12 +14,16 @@ import {
   ImageBackground,
   Keyboard,
   Modal,
-
 } from "react-native";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useNavigation, NavigationProp, RouteProp,useRoute,} from "@react-navigation/native";
+import {
+  useNavigation,
+  NavigationProp,
+  useRoute,
+  RouteProp,
+} from "@react-navigation/native";
 import { format } from "date-fns";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
@@ -28,44 +32,78 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 // import DatePicker from "react-native-date-picker";
 import { LinearGradient } from "expo-linear-gradient";
 
-import { Child, calculateAge, Room } from "../../components/page/HomeSP";
-type ChooseChildSPRountprop = RouteProp<
-  { assessment: { rooms: Room } },
-  "assessment"
->;
 // Form validation schema
 const AddChildSchema = z.object({
   firstName: z.string().min(4, "กรุณาระบุชื่อเด็ก").max(150),
   lastName: z.string().min(4, "กรุณาระบุนามสกุลเด็ก").max(150),
   nickName: z.string().min(2, "กรุณาระบุชื่อเล่นเด็ก").max(150),
-  birthday: z.date({
+  birthday: z.string({
     required_error: "กรุณาระบุวันเกิดเด็ก",
     invalid_type_error: "รูปแบบวันเกิดไม่ถูกต้อง",
   }),
   gender: z.enum(["male", "female"]),
+  childPic: z.string().optional(),
 });
 
 // Type Definitions
 type AddChildModel = z.infer<typeof AddChildSchema>;
 
-export const AddchildSP: FC = () => {
+import { Child } from "./HomePR";
+type ChildRouteProp = RouteProp<{ assessment: { child: Child } }, "assessment">;
+
+export const EditChild: FC = () => {
   const {
     control,
     handleSubmit,
     formState: { errors },
     setValue,
+    getValues,
   } = useForm<AddChildModel>({
     resolver: zodResolver(AddChildSchema),
   });
   // hooks
   const navigation = useNavigation<NavigationProp<any>>();
 
-  const [childPic, setChildPic] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [date, setDate] = useState(new Date());
+  const Childroute = useRoute<ChildRouteProp>();
+  const { child } = Childroute.params;
+
+  // 🔹 State สำหรับข้อมูลเด็ก
+  const formatDate = (dateString: string) => {
+    return dateString.split("T")[0]; // ตัดให้เหลือ YYYY-MM-DD
+  };
+  const [selectedDate, setSelectedDate] = useState<string | null>(
+    child.birthday ? formatDate(child.birthday) : null
+  );
+  const [date, setDate] = useState<Date>(
+    child.birthday ? new Date(child.birthday) : new Date()
+  );
+
+  const [childPic, setChildPic] = useState<string | null>(
+    child.childPic || null
+  );
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const route = useRoute<ChooseChildSPRountprop>();
-  const { rooms } = route.params;
+  const [modalVisible, setModalVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  //
+  useEffect(() => {
+    if (child) {
+      setValue("firstName", child.firstName || "");
+      setValue("lastName", child.lastName || "");
+      setValue("nickName", child.nickName || "");
+      setValue("birthday", child.birthday || "");
+      setValue(
+        "gender",
+        child.gender === "male" || child.gender === "female"
+          ? child.gender
+          : "male"
+      );
+    }
+    if (child.birthday) {
+      setSelectedDate(formatDate(child.birthday)); // ตัดให้เหลือ YYYY-MM-DD
+      setDate(new Date(child.birthday));
+    }
+  }, [child, setValue, child.birthday]);
 
   // ฟังก์ชันการจัดการการยืนยันวันที่
   const handleConfirm = (selectedDate: Date) => {
@@ -79,7 +117,7 @@ export const AddchildSP: FC = () => {
 
     setSelectedDate(formattedDate); // เก็บวันที่ที่แปลงแล้วใน state
     setDate(selectedDate); // เก็บ Date object
-    setValue("birthday", selectedDate); // ส่งค่าไปยัง react-hook-form
+    setValue("birthday", selectedDate.toISOString()); // ส่งค่าไปยัง react-hook-form
   };
 
   // ฟังก์ชันขออนุญาต
@@ -120,115 +158,150 @@ export const AddchildSP: FC = () => {
     const result = await ImagePicker.launchImageLibraryAsync(options);
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const selectedImageUri = result.assets[0].uri;
-
-      // สร้างโฟลเดอร์หากยังไม่มี
-      const imgDir = FileSystem.documentDirectory + "images/";
-      await FileSystem.makeDirectoryAsync(imgDir, { intermediates: true });
-
-      // บันทึกรูปภาพลงในเครื่อง
-      const filename = new Date().getTime() + ".jpeg";
-      const dest = imgDir + filename;
-      await FileSystem.copyAsync({ from: selectedImageUri, to: dest });
-      setChildPic(dest); // ตั้ง path ของภาพที่บันทึกไว้ใน state
-      console.log("Selected and saved Image URI:", dest);
+      setChildPic(selectedImageUri); // ✅ อัปเดต UI ให้แสดงรูปที่เลือกใหม่
+      console.log("Selected Image URI:", selectedImageUri);
     }
   };
 
-  // ฟังก์ชันสำหรับส่งข้อมูล
-  const onSubmit: SubmitHandler<AddChildModel> = async (formData) => {
-    const supervisor_id = await AsyncStorage.getItem("userId");
+  // handleUpdate Child Profile
+  const handleUpdate = async () => {
+    const userId = await AsyncStorage.getItem("userId");
     const token = await AsyncStorage.getItem("userToken");
 
-    console.log("Form data:", formData);
-    console.log("supervisor_id: ", supervisor_id);
-    console.log("Date: ", selectedDate);
-    //console.log("childPic data:", childPic);
+    console.log("user_id: ", userId);
 
     try {
-      const data = new FormData();
-      // Append values only if they are not null
-      if (formData.firstName) {
-        data.append("firstName", formData.firstName);
+      const formData = new FormData();
+
+      // 📌 send child_id with FormData
+      formData.append("child_id", child.child_id.toString());
+
+      // 📌 ดึงค่าปัจจุบันจาก `useForm`
+      const { firstName, lastName, nickName, birthday, gender } = getValues();
+
+      // 📌 ดึงค่าดั้งเดิมจาก `child`
+      const storeFirstName = child.firstName;
+      const storeLastName = child.lastName;
+      const storeNickName = child.nickName;
+      const storeBirthday = child.birthday;
+      const storeGender = child.gender;
+
+      // 📌 เช็คว่าเปลี่ยนแปลงหรือไม่ ก่อนเพิ่มลง FormData
+      if (firstName && firstName !== storeFirstName) {
+        formData.append("firstName", firstName);
       }
-      if (formData.lastName) {
-        data.append("lastName", formData.lastName);
+
+      if (lastName && lastName !== storeLastName) {
+        formData.append("lastName", lastName);
       }
-      if (formData.nickName) {
-        data.append("nickName", formData.nickName);
+
+      if (nickName && nickName !== storeNickName) {
+        formData.append("nickName", nickName);
       }
-      if (selectedDate) {
-        data.append("birthday", selectedDate);
+
+      if (birthday && birthday !== storeBirthday) {
+        formData.append("birthday", birthday);
       }
-      if (formData.gender) {
-        data.append("gender", formData.gender);
+
+      if (gender && gender !== storeGender) {
+        formData.append("gender", gender);
       }
-      if (supervisor_id) {
-        data.append("supervisor_id", supervisor_id);
-      }
-      if (rooms.rooms_id) {
-        data.append("rooms_id", String(rooms.rooms_id));
-      }
-      // ตรวจสอบว่ามีรูปภาพหรือไม่
+
+      // Append profile picture if available
       if (childPic) {
-        try {
-          // Use the file URI directly without fetching it
-          const filename = childPic.split("/").pop(); // Extract filename from URI
-          const imageType = "image/jpeg"; // Change according to your image type
-
-          // Append the image correctly to FormData
-          data.append("childPic", {
-            uri: childPic,
-            name: filename,
-            type: imageType, // Set the correct type
-          } as any); // Use 'as any' to bypass type checking if necessary
-
-          console.log("childPic data:", childPic);
-          console.log("Appending image with filename:", filename);
-        } catch (error) {
-          console.error("Error processing image:", error);
-        }
+        const uri = childPic;
+        const filename = uri.split("/").pop(); // Extract filename from URI
+        const imageType = "image/jpeg"; // Assuming JPEG format
+        formData.append("childPic", {
+          uri: uri, // Ensure URI is valid
+          name: filename,
+          type: imageType,
+        } as any);
       } else {
-        Alert.alert("ไม่สำเร็จ", "กรุณาเลือกรูปภาพ");
+        console.log("No childPic provided");
       }
 
-      // ส่งคำขอไปยัง API
-      const resp = await fetch(
-        "https://senior-test-deploy-production-1362.up.railway.app/api/childs/addChild-S",
+      // 📌 ตรวจสอบว่ามีการเปลี่ยนแปลงข้อมูลหรือไม่
+      if (formData.entries().next().done) {
+        Alert.alert("ไม่มีการเปลี่ยนแปลง", "กรุณาแก้ไขข้อมูลก่อนกดบันทึก");
+        return;
+      }
+
+      // 📌 ส่งข้อมูลไปยัง Backend
+      const response = await fetch(
+        "https://senior-test-deploy-production-1362.up.railway.app/api/profiles/update-child-profile",
         {
-          method: "POST",
+          method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          body: data,
+          body: formData,
         }
       );
 
-      // ตรวจสอบสถานะของการตอบสนองจาก API
-      const jsonResp = await resp.json();
-      console.log("API Response:", jsonResp);
+      const result = await response.json();
+      console.log("Response from update:", result);
 
-      if (resp.ok) {
-        Alert.alert("สำเร็จ", "เพิ่มข้อมูลเข้าระบบแล้วรอการยืนยัน");
-        // await AsyncStorage.setItem("ProfileChild", jsonResp.childPic);
-        navigation.navigate("mainSP");
-      } else if (resp.status === 409) {
-        Alert.alert("ไม่สำเร็จ", "มีเด็กในระบบอยู่แล้ว");
-        navigation.navigate("mainSP");
+      if (response.ok && result.success) {
+        Alert.alert("สำเร็จ", "อัปเดตข้อมูลเด็กเรียบร้อยแล้ว", [
+          { text: "ตกลง", onPress: () => navigation.navigate("mainPR") },
+        ]);
       } else {
-        const errorResponse = await resp.text();
-        console.error("Error response from server:", errorResponse);
-        Alert.alert("ระบบมีปัญหา", errorResponse || "กรุณาลองอีกครั้ง");
+        Alert.alert("เกิดข้อผิดพลาด", result.message || "ไม่สามารถอัปเดตได้");
       }
-    } catch (e) {
-      console.log(e);
-      Alert.alert("ระบบมีปัญหา", "กรุณาลองอีกครั้ง");
+    } catch (error) {
+      console.error("Error updating child profile:", error);
+      Alert.alert("ข้อผิดพลาด", "เกิดข้อผิดพลาดระหว่างการอัปเดตข้อมูล");
     }
   };
 
+  //================================================================================================
+  // ============ Delete Child Function ============
+  const handleDeleteChild = async (child_id: number) => {
+    setIsLoading(true);
+    const token = await AsyncStorage.getItem("userToken");
+
+    try {
+      const response = await fetch(
+        `https://senior-test-deploy-production-1362.up.railway.app/api/profiles/delete-child/${child_id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const result = await response.json();
+      console.log("Delete Response:", result);
+
+      if (response.ok) {
+        setModalVisible(false);
+        Alert.alert("ลบสำเร็จ", "ข้อมูลเด็กถูกลบออกจากระบบแล้ว", [
+          {
+            text: "ตกลง",
+            onPress: () => navigation.navigate("mainPR"),
+          },
+        ]);
+      } else {
+        Alert.alert("ลบไม่สำเร็จ", result.message || "เกิดข้อผิดพลาด");
+      }
+    } catch (error) {
+      console.error("Error deleting child:", error);
+      Alert.alert("ลบไม่สำเร็จ", "เกิดข้อผิดพลาดขณะลบข้อมูลเด็ก");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  //================================================================================================
+  // ============ whenGoto Function ============
   const goBack = () => {
     navigation.goBack();
   };
 
+  // return
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       {/* <ScrollView contentContainerStyle={styles.scrollContainer}> */}
@@ -237,7 +310,7 @@ export const AddchildSP: FC = () => {
         style={styles.background}
       >
         {/* Top Section */}
-        <Text style={styles.HeaderText}>ข้อมูลเด็กที่ต้องการเพิ่ม</Text>
+        <Text style={styles.HeaderText}>แก้ไขข้อมูลเด็ก</Text>
 
         {/* Mid Section */}
         <View style={styles.Inputcontainer}>
@@ -266,87 +339,51 @@ export const AddchildSP: FC = () => {
           >
             {/* Input Section */}
             <View style={styles.MiddleSection}>
+              {/* FirstName */}
               <Controller
                 control={control}
                 name="firstName"
                 render={({ field: { onChange, value } }) => (
-                  <>
-                    <TextInput
-                      style={[
-                        styles.input,
-                        errors.firstName && styles.errorInput,
-                      ]}
-                      placeholder="ชื่อเด็ก"
-                      placeholderTextColor="#A9A9A9"
-                      onChangeText={onChange}
-                      value={value}
-                    />
-                    {errors.firstName && (
-                      <Text style={styles.errorText}>
-                        {errors.firstName && (
-                          <Text style={styles.errorText}>
-                            กรุณาระบุชื่อเด็ก
-                          </Text>
-                        )}
-                      </Text>
-                    )}
-                  </>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      errors.firstName && styles.errorInput,
+                    ]}
+                    placeholder="ชื่อเด็ก"
+                    placeholderTextColor="#A9A9A9"
+                    onChangeText={onChange} // ✅ ใช้ `onChange` ของ react-hook-form
+                    value={value} // ✅ ค่าเริ่มต้นจะถูกโหลดจาก `child.firstName`
+                  />
                 )}
               />
 
+              {/* LastName */}
               <Controller
                 control={control}
                 name="lastName"
                 render={({ field: { onChange, value } }) => (
-                  <>
-                    <TextInput
-                      style={[
-                        styles.input,
-                        errors.lastName && styles.errorInput,
-                      ]}
-                      placeholder="นามสกุลเด็ก"
-                      placeholderTextColor="#A9A9A9"
-                      onChangeText={onChange}
-                      value={value}
-                    />
-                    {errors.lastName && (
-                      <Text style={styles.errorText}>
-                        {errors.lastName && (
-                          <Text style={styles.errorText}>
-                            กรุณาระบุนามสกุลเด็ก
-                          </Text>
-                        )}
-                      </Text>
-                    )}
-                  </>
+                  <TextInput
+                    style={[styles.input, errors.lastName && styles.errorInput]}
+                    placeholder="นามสกุลเด็ก"
+                    placeholderTextColor="#A9A9A9"
+                    onChangeText={onChange}
+                    value={value} // ✅ ค่าเริ่มต้นจะถูกโหลดจาก `child.lastName`
+                  />
                 )}
               />
 
+              {/* NickName */}
               <Controller
                 control={control}
                 name="nickName"
                 render={({ field: { onChange, value } }) => (
-                  <>
-                    <TextInput
-                      style={[
-                        styles.input,
-                        errors.nickName && styles.errorInput,
-                      ]}
-                      placeholder="ชื่อเล่น"
-                      placeholderTextColor="#A9A9A9"
-                      onChangeText={onChange}
-                      value={value}
-                    />
-                    {errors.nickName && (
-                      <Text style={styles.errorText}>
-                        {errors.nickName && (
-                          <Text style={styles.errorText}>
-                            กรุณาระบุชื่อเล่นเด็ก
-                          </Text>
-                        )}
-                      </Text>
-                    )}
-                  </>
+                  <TextInput
+                    style={[styles.input, errors.nickName && styles.errorInput]}
+                    placeholder="ชื่อเล่นเด็ก"
+                    placeholderTextColor="#A9A9A9"
+                    onChangeText={onChange}
+                    value={value}
+                  />
                 )}
               />
 
@@ -381,7 +418,6 @@ export const AddchildSP: FC = () => {
                         onChange={(event, newDate) => {
                           if (newDate) {
                             setDate(newDate);
-                            
                           }
                         }}
                         textColor="black"
@@ -390,13 +426,13 @@ export const AddchildSP: FC = () => {
                       />
                       <View style={styles.buttonsContainer}>
                         <TouchableOpacity
-                          style={styles.cancelButton}
+                          style={styles.cancelButtonCalender}
                           onPress={() => setShowDatePicker(false)}
                         >
                           <Text style={styles.buttonText}>ยกเลิก</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                          style={styles.confirmButton}
+                          style={styles.confirmButtonCalender}
                           onPress={() => {
                             handleConfirm(date);
                             setShowDatePicker(false);
@@ -433,7 +469,7 @@ export const AddchildSP: FC = () => {
                 <Controller
                   control={control}
                   name="gender"
-                  rules={{ required: "กรุณาเลือกเพศ" }} // Add validation rule here
+                  rules={{ required: "กรุณาเลือกเพศ" }}
                   render={({ field: { onChange, value } }) => (
                     <View style={styles.genderOptions}>
                       <TouchableOpacity
@@ -445,10 +481,11 @@ export const AddchildSP: FC = () => {
                             value === "male"
                               ? styles.radioSelected
                               : styles.radio
-                          }
+                          } // ✅ กำหนดจุดเขียวตามค่า gender
                         />
                         <Text>ชาย</Text>
                       </TouchableOpacity>
+
                       <TouchableOpacity
                         onPress={() => onChange("female")}
                         style={styles.genderOption}
@@ -458,21 +495,18 @@ export const AddchildSP: FC = () => {
                             value === "female"
                               ? styles.radioSelected
                               : styles.radio
-                          }
+                          } // ✅ กำหนดจุดเขียวตามค่า gender
                         />
                         <Text>หญิง</Text>
                       </TouchableOpacity>
                     </View>
                   )}
                 />
-                {/* Error Message */}
-                {errors.gender && (
-                  <Text style={styles.errorTextGender}>กรุณาระบุเพศเด็ก</Text>
-                )}
               </View>
             </View>
           </LinearGradient>
         </View>
+
         {/* Bottom Section */}
         <View style={styles.buttonContainer}>
           <Pressable style={styles.backButton} onPress={goBack}>
@@ -483,14 +517,62 @@ export const AddchildSP: FC = () => {
           </Pressable>
           <Pressable
             //onPress={whenGotoAssessment}
-            onPress={handleSubmit(onSubmit)}
+            onPress={handleSubmit(handleUpdate)}
             style={styles.submitButton}
           >
             <Text style={styles.buttonText}>บันทึก</Text>
           </Pressable>
         </View>
+
+        {/* ปุ่มลบเด็ก */}
+        <Pressable
+          style={styles.deleteChild}
+          onPress={() => setModalVisible(true)}
+        >
+          <Image
+            source={require("../../assets/icons/delete.png")}
+            style={styles.deleteChildIcon}
+            resizeMode="contain"
+          />
+        </Pressable>
+        {/* Popup Modal */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalText}>
+                คุณต้องการลบข้อมูลเด็กใช่หรือไม่?
+              </Text>
+              <Text style={styles.modaltitleText}>
+                เด็กจะถูกลบออกจากบัญชีของคุณ
+                รวมถึงบัญชีของผู้ดูแลที่เคยได้รับอนุญาตให้ใช้ข้อมูลด้วย
+              </Text>
+
+              <View style={styles.modalButtonContainer}>
+                {/* ปุ่มยกเลิก */}
+                <Pressable
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.buttonText}>ยกเลิก</Text>
+                </Pressable>
+
+                {/* ปุ่มยืนยันลบ */}
+                <Pressable
+                  style={[styles.modalButton, styles.confirmButton]}
+                  onPress={() => handleDeleteChild(child.child_id)}
+                >
+                  <Text style={styles.buttonText}>ยืนยัน</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </ImageBackground>
-      {/* </ScrollView> */}
     </TouchableWithoutFeedback>
   );
 };
@@ -524,7 +606,7 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 3,
+    //shadowRadius: 3,
     elevation: 6,
     // borderWidth: 2,
     marginTop: 60, // Add marginTop to prevent overlapping
@@ -532,13 +614,20 @@ const styles = StyleSheet.create({
   container: {
     // flex: 1,
     width: "100%",
-    height: "100%",
+    height: "80%",
     justifyContent: "center",
     alignItems: "center",
     // backgroundColor: "#eafff8",
-    borderRadius: 20,
+    borderRadius: 25,
     padding: 20,
-    // borderWidth: 2,
+    //borderWidth: 2,
+    shadowColor: "#848484",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 5,
+    position: "absolute",
+    top: 10, // ปรับค่าตามต้องการ
   },
 
   input: {
@@ -590,9 +679,100 @@ const styles = StyleSheet.create({
     backgroundColor: "#4CAF50",
     marginRight: 10,
   },
+
+  deleteChild: {
+    //borderWidth:1,
+    width: 90,
+    height: 55,
+    borderRadius: 30,
+    backgroundColor: "#FF8E8E",
+    position: "absolute",
+    bottom: 70,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#848484",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 5,
+  },
+
+  deleteChildIcon: {
+    width: "35%",
+    marginLeft: 7,
+    //height:40,
+    //borderWidth:1,
+  },
+
+  modalBackground: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // พื้นหลังโปร่งใส
+  },
+  modalContainer: {
+    width: 300,
+    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 25,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    fontSize: 18,
+    textAlign: "center",
+    marginBottom: 10,
+    fontWeight: "bold",
+  },
+  modaltitleText: {
+    textAlign: "center",
+    fontSize: 13,
+    marginBottom: 20,
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  modalButton: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: "#FFB6B6",
+  },
+  confirmButton: {
+    backgroundColor: "#CAEEE1",
+  },
+  confirmButtonCalender: {
+    flex: 1,
+    backgroundColor: "#f4f4f4",
+    padding: 12,
+    borderRadius: 8,
+    marginLeft: 5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelButtonCalender: {
+    flex: 1,
+    backgroundColor: "#f4f4f4",
+    padding: 12,
+    borderRadius: 8,
+    marginRight: 5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
   buttonContainer: {
     position: "absolute",
-    bottom: 25,
+    bottom: 170,
     flexDirection: "row",
     paddingHorizontal: 20,
     width: "100%",
@@ -642,6 +822,11 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: "25%",
     alignItems: "center",
+    shadowColor: "#848484",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 5,
   },
   submitButton: {
     backgroundColor: "#cce9fe",
@@ -651,6 +836,11 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: "50%",
     alignItems: "center",
+    shadowColor: "#848484",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 5,
   },
   Icon: {
     width: 30,
@@ -690,12 +880,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  modalBackground: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
+
   pickerContainer: {
     backgroundColor: "white",
     padding: 20,
@@ -707,15 +892,6 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 
-  confirmButton: {
-    flex: 1,
-    backgroundColor: "#f4f4f4",
-    padding: 12,
-    borderRadius: 8,
-    marginLeft: 5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   confirmText: {
     color: "white",
     fontSize: 16,
@@ -726,15 +902,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 20,
   },
-  cancelButton: {
-    flex: 1,
-    backgroundColor: "#f4f4f4",
-    padding: 12,
-    borderRadius: 8,
-    marginRight: 5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+
   placeholderText: {
     color: "gray",
     fontStyle: "italic",

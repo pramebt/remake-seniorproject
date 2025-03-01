@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import LottieView from "lottie-react-native";
-import { Assessment } from "./page/Assessment";
+
 
 export const LoadingScreenAdvice = () => {
   return (
@@ -31,6 +31,19 @@ export const LoadingScreenCuteBaby = () => {
   );
 };
 
+export const LoadingScreenToy = () => {
+  return (
+    <View style={styles.container}>
+      <LottieView
+        source={require("../assets/logo/lottie/toy.json")}
+        autoPlay
+        loop
+        style={styles.toyloading}
+      />
+    </View>
+  );
+};
+
 export const LoadingScreenHello = () => {
   return (
     <View style={styles.container}>
@@ -40,7 +53,19 @@ export const LoadingScreenHello = () => {
         loop
         style={styles.helloloading}
       />
-      </View>
+    </View>
+  );
+};
+export const LoadingScreenWelcome = () => {
+  return (
+    <View style={styles.container}>
+      <LottieView
+        source={require("../assets/logo/lottie/welcome.json")}
+        autoPlay
+        loop
+        style={styles.welcomeloading}
+      />
+    </View>
   );
 };
 
@@ -91,6 +116,7 @@ export const LoadingScreenSearchfile = () => {
     </View>
   );
 };
+
 export const LoadingScreenBook = () => {
   return (
     <View style={styles.container}>
@@ -116,8 +142,20 @@ export const LoadingScreenLocation = () => {
         loop
         style={styles.assessmentLottie}
       />
-       <Text style={styles.text}>กำลังค้นหาสถานพยาบาลใกล้คุณ...</Text>
-       <Text style={styles.subText}>กำลังดึงข้อมูลอยู่ กรุณารอสักครู่</Text>
+      <Text style={styles.text}>กำลังค้นหาสถานพยาบาลใกล้คุณ...</Text>
+      <Text style={styles.subText}>กำลังดึงข้อมูลอยู่ กรุณารอสักครู่</Text>
+    </View>
+  );
+};
+export const LoadingScreenPassAll = () => {
+  return (
+    <View style={styles.container}>
+      <LottieView
+        source={require("../assets/logo/lottie/passAll.json")}
+        autoPlay
+        loop
+        style={styles.assessmentLottie}
+      />
     </View>
   );
 };
@@ -129,23 +167,34 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     //backgroundColor: "#fff",
-    
+
   },
+
 
   cutebabyloading: {
     //flex: 1,
     justifyContent: "center",
     alignItems: "center",
     //backgroundColor: "#fff",
-    
+
   },
 
-  helloloading:{
+  helloloading: {
     width: 400,
     height: 400,
 
   },
-  baby:{
+  welcomeloading: {
+    width: 250,
+    height: 250,
+
+  },
+  toyloading: {
+    width: 400,
+    height: 400,
+
+  },
+  baby: {
     width: 200,
     height: 200,
   },
@@ -170,7 +219,6 @@ const styles = StyleSheet.create({
   assessmentLottie: {
     width: 200,
     height: 200,
-    
   },
   assessmentText: {
     marginTop: 5,

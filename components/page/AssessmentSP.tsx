@@ -48,11 +48,14 @@ export const AssessmentSP: FC = () => {
   const whenGotoPSSP = (child: Child) => {
     navigation.navigate("spsp", { child });
   };
-
+  
   const whenGotoHomeSP = () => {
     navigation.navigate("mainSP");
   };
-
+  
+  const whenGotoEditChildSP = (child: Child) => {
+    navigation.navigate("editchildsp", { child });
+  };
   // navigate goBack
   const goBack = () => {
     navigation.goBack();
@@ -88,9 +91,9 @@ export const AssessmentSP: FC = () => {
                   ? styles.detailsButtonBoy
                   : styles.detailsButtonGirl
               }
-              //onPress={() => whenGotoDetail(child.id)}
+              onPress={() => whenGotoEditChildSP(child)}
             >
-              <Text style={styles.detailsText}>ดูรายละเอียด</Text>
+              <Text style={styles.detailsText}>แก้ไขข้อมูล</Text>
             </Pressable>
           </View>
         </View>
